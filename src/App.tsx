@@ -23,15 +23,13 @@ function App() {
     client.models.Todo.delete({ id });
   }
 
-  async function toggleTodo(id: string, currentIsDone: boolean) {
-    try {
-      await client.models.Todo.update({
-        id: id,
-        isDone: !currentIsDone
-      });
-    } catch (error) {
+  function toggleTodo(id: string, currentIsDone: boolean) {
+    client.models.Todo.update({
+      id: id,
+      isDone: !currentIsDone
+    }).catch(error => {
       console.error("Error updating todo:", error);
-    }
+    });
   }
 
   return (
