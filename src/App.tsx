@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
-import { Authenticator } from "@aws-amplify/ui-react"
-import "@aws-amplify/ui-react/styles.css"
+import { Authenticator } from "@aws-amplify/ui-react";
+import "@aws-amplify/ui-react/styles.css";
+import type { Schema } from "../amplify/data/resource";
 
 const client = generateClient<Schema>();
 
@@ -16,23 +16,41 @@ function App() {
   }, []);
 
   function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
+    client.models.Todo.create({ content: window.prompt("Todo content"), isDone: false });
   }
 
   function deleteTodo(id: string) {
     client.models.Todo.delete({ id });
   }
 
+  async function toggleTodo(id: string, currentIsDone: boolean) {
+    try {
+      await client.models.Todo.update({
+        id: id,
+        isDone: !currentIsDone
+      });
+    } catch (error) {
+      console.error("Error updating todo:", error);
+    }
+  }
+
   return (
     <Authenticator>
-      {({ signOut }) => (
+      {({ signOut, user }) => (
         <main>
-          <h1>My todos</h1>
+          <h1>{user?.signInDetails?.loginId}'s todos</h1>
           <button onClick={createTodo}>+ new</button>
           <ul>
             {todos.map((todo) => (
               <li key={todo.id}>
-                {todo.content}
+                <input
+                  type="checkbox"
+                  checked={todo.isDone ?? false}
+                  onChange={() => toggleTodo(todo.id, todo.isDone ?? false)}
+                />
+                <span style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
+                  {todo.content}
+                </span>
                 <button onClick={() => deleteTodo(todo.id)}>Delete</button>
               </li>
             ))}
