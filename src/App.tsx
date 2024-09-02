@@ -37,7 +37,7 @@ function App() {
       {({ signOut, user }) => (
         <main>
           <h1>{user?.signInDetails?.loginId}'s todos</h1>
-          <button onClick={createTodo}>+ new</button>
+          <button onClick={createTodo}>+ New Item</button>
           <ul>
             {todos.map((todo) => (
               <li key={todo.id}>
@@ -53,10 +53,6 @@ function App() {
               </li>
             ))}
           </ul>
-          <div>
-            🥳 App successfully hosted. Try creating a new todo.
-            <br />
-          </div>
           <button onClick={signOut}>Sign out</button>
         </main>
       )}
