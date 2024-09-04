@@ -39,7 +39,7 @@ function App() {
   }, []);
 
   return (
-    <Authenticator>
+    <Authenticator socialProviders={['google']}>
       {({ signOut, user }) => {
         // Update the current user when it changes
         if (user !== currentUser) {
