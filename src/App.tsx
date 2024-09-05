@@ -48,7 +48,7 @@ function App() {
 
         return (
           <main>
-            <h1>{user?.signInDetails?.loginId}'s todos</h1>
+            <h1>{user?.username || 'User'}'s todos</h1>
             <button onClick={createTodo}>+ New Item</button>
             <ul>
               {todos.map((todo) => (

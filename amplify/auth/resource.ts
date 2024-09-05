@@ -17,10 +17,10 @@ export const auth = defineAuth({
         },
       },
       callbackUrls: [
-        'http://localhost:3000/profile',
+        'http://localhost:5173',
         'https://main.d1r842ef96fa1l.amplifyapp.com'
       ],
-      logoutUrls: ['http://localhost:3000/', 'https://main.d1r842ef96fa1l.amplifyapp.com'],
+      logoutUrls: ['http://localhost:5173', 'https://main.d1r842ef96fa1l.amplifyapp.com'],
     }
   }
 });
