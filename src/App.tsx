@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
+import { getCurrentUser, signOut } from 'aws-amplify/auth';
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 
@@ -9,6 +10,21 @@ const client = generateClient<Schema>();
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => {
+    checkAuthState();
+  }, []);
+
+  async function checkAuthState() {
+    try {
+      await getCurrentUser();
+      setIsAuthenticated(true);
+    } catch {
+      setIsAuthenticated(false);
+    }
+  }
 
   useEffect(() => {
     if (currentUser) {
@@ -38,38 +54,65 @@ function App() {
     });
   }, []);
 
-  return (
-    <Authenticator socialProviders={['google']}>
-      {({ signOut, user }) => {
-        // Update the current user when it changes
-        if (user !== currentUser) {
-          setCurrentUser(user);
-        }
+  const LandingPage = () => (
+    <div style={{ padding: '20px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Welcome to Our App</h1>
+        <div>
+          <button onClick={() => setShowAuth(true)}>Login</button>
+          <button onClick={() => setShowAuth(true)}>Sign Up</button>
+        </div>
+      </header>
+      <main>
+        <h2>Your Amazing App Description</h2>
+        <p>This is where you can describe your app's features and benefits.</p>
+      </main>
+    </div>
+  );
 
-        return (
-          <main>
-            <h1>{user?.username || 'User'}'s todos</h1>
-            <button onClick={createTodo}>+ New Item</button>
-            <ul>
-              {todos.map((todo) => (
-                <li key={todo.id}>
-                  <input
-                    type="checkbox"
-                    checked={todo.isDone ?? false}
-                    onChange={() => toggleTodo(todo.id, todo.isDone ?? false)}
-                  />
-                  <span style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
-                    {todo.content}
-                  </span>
-                  <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-                </li>
-              ))}
-            </ul>
-            <button onClick={signOut}>Sign out</button>
-          </main>
-        );
-      }}
-    </Authenticator>
+  return (
+    <>
+      {(!isAuthenticated && !showAuth) ? (
+        <LandingPage />
+      ) : (
+        <Authenticator socialProviders={['google']}>
+          {({ signOut, user }) => {
+            if (user && !currentUser) {
+              setCurrentUser(user);
+              setShowAuth(true);
+              console.log("is logged in");
+            }
+            
+            return (
+              <main>
+                <h1>{user?.signInDetails?.loginId || user?.username || 'User'}'s todos</h1>
+                <button onClick={createTodo}>+ New Item</button>
+                <ul>
+                  {todos.map((todo) => (
+                    <li key={todo.id}>
+                      <input
+                        type="checkbox"
+                        checked={todo.isDone ?? false}
+                        onChange={() => toggleTodo(todo.id, todo.isDone ?? false)}
+                      />
+                      <span style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
+                        {todo.content}
+                      </span>
+                      <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+                    </li>
+                  ))}
+                </ul>
+                <button onClick={() => {
+                  signOut?.();
+                  setShowAuth(false);
+                  setCurrentUser(null);
+                }}>Sign out</button>
+              </main>
+            );
+          }}
+        </Authenticator>
+      )}
+    </>
   );
 }
 
