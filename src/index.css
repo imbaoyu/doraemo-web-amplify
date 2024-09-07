@@ -127,3 +127,38 @@ a:hover {
 .amplify-divider {
   border-color: #eaeded;
 }
+
+.todo-input-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.todo-input {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.todo-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.todo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.todo-content {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.todo-text {
+  margin-left: 5px;
+  margin-right: 10px;
+}

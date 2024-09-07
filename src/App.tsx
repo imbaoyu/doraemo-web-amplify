@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
-import { getCurrentUser, signOut } from 'aws-amplify/auth';
+import { getCurrentUser } from 'aws-amplify/auth';
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 
@@ -12,6 +12,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [newTodoContent, setNewTodoContent] = useState("");
 
   useEffect(() => {
     checkAuthState();
@@ -38,8 +39,11 @@ function App() {
   }, [currentUser]);
 
   const createTodo = useCallback(() => {
-    client.models.Todo.create({ content: window.prompt("Todo content"), isDone: false });
-  }, []);
+    if (newTodoContent.trim()) {
+      client.models.Todo.create({ content: newTodoContent, isDone: false });
+      setNewTodoContent("");
+    }
+  }, [newTodoContent]);
 
   const deleteTodo = useCallback((id: string) => {
     client.models.Todo.delete({ id });
@@ -85,19 +89,30 @@ function App() {
             
             return (
               <main>
-                <h1>{user?.signInDetails?.loginId || user?.username || 'User'}'s todos</h1>
-                <button onClick={createTodo}>+ New Item</button>
-                <ul>
+                <h1>{user?.username || 'User'}'s todos</h1>
+                <div className="todo-input-container">
+                  <input
+                    className="todo-input"
+                    type="text"
+                    value={newTodoContent}
+                    onChange={(e) => setNewTodoContent(e.target.value)}
+                    placeholder="Enter new todo"
+                  />
+                  <button onClick={createTodo}>Add Todo</button>
+                </div>
+                <ul className="todo-list">
                   {todos.map((todo) => (
-                    <li key={todo.id}>
-                      <input
-                        type="checkbox"
-                        checked={todo.isDone ?? false}
-                        onChange={() => toggleTodo(todo.id, todo.isDone ?? false)}
-                      />
-                      <span style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
-                        {todo.content}
-                      </span>
+                    <li key={todo.id} className="todo-item">
+                      <div className="todo-content">
+                        <input
+                          type="checkbox"
+                          checked={todo.isDone ?? false}
+                          onChange={() => toggleTodo(todo.id, todo.isDone ?? false)}
+                        />
+                        <span className="todo-text" style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
+                          {todo.content}
+                        </span>
+                      </div>
                       <button onClick={() => deleteTodo(todo.id)}>Delete</button>
                     </li>
                   ))}
