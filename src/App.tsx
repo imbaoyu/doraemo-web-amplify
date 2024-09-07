@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
-import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
+import { getCurrentUser, fetchUserAttributes, FetchUserAttributesOutput } from 'aws-amplify/auth';
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 
