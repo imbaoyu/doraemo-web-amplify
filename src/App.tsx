@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
-import { getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 
@@ -10,6 +10,7 @@ const client = generateClient<Schema>();
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userAttributes, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [newTodoContent, setNewTodoContent] = useState("");
@@ -27,6 +28,15 @@ function App() {
     }
   }
 
+  async function fetchAttributes() {
+    try {
+      const attributes = await fetchUserAttributes();
+      setUserAttributes(attributes);
+    } catch (error) {
+      console.error('Error fetching user attributes:', error);
+    }
+  }
+
   useEffect(() => {
     if (currentUser) {
       setTodos([]); // Reset todos when user changes
@@ -35,6 +45,12 @@ function App() {
       });
 
       return () => subscription.unsubscribe();
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if(currentUser) {
+      fetchAttributes();
     }
   }, [currentUser]);
 
@@ -89,7 +105,7 @@ function App() {
             
             return (
               <main>
-                <h1>{user?.username || 'User'}'s todos</h1>
+                <h1>{userAttributes?.email || 'User'}'s todos</h1>
                 <div className="todo-input-container">
                   <input
                     className="todo-input"
