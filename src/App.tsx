@@ -1,3 +1,4 @@
+import "./App.css";
 import { useEffect, useState, useCallback } from "react";
 import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
@@ -116,9 +117,9 @@ function App() {
                   />
                   <button onClick={createTodo}>Add Todo</button>
                 </div>
-                <ul className="todo-list">
+                <div className="todo-grid">
                   {todos.map((todo) => (
-                    <li key={todo.id} className="todo-item">
+                    <div key={todo.id} className="todo-tile">
                       <div className="todo-content">
                         <input
                           type="checkbox"
@@ -130,9 +131,9 @@ function App() {
                         </span>
                       </div>
                       <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
                 <button onClick={() => {
                   signOut?.();
                   setShowAuth(false);
