@@ -106,7 +106,15 @@ function App() {
             
             return (
               <main>
-                <h1>{userAttributes?.email || 'User'}'s todos</h1>
+                <div className="top-banner">
+                  <h1>Amazing Deals</h1>
+                  <button className="signout-button" onClick={() => {
+                    signOut?.();
+                    setShowAuth(false);
+                    setCurrentUser(null);
+                  }}>Sign Out</button>
+                </div>
+                <h1>{userAttributes?.email || 'User'}'s deals</h1>
                 <div className="todo-input-container">
                   <input
                     className="todo-input"
@@ -134,11 +142,6 @@ function App() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => {
-                  signOut?.();
-                  setShowAuth(false);
-                  setCurrentUser(null);
-                }}>Sign out</button>
               </main>
             );
           }}
