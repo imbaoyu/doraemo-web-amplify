@@ -108,13 +108,15 @@ function App() {
               <main>
                 <div className="top-banner">
                   <h1>Amazing Deals</h1>
-                  <button className="signout-button" onClick={() => {
-                    signOut?.();
-                    setShowAuth(false);
-                    setCurrentUser(null);
-                  }}>Sign Out</button>
+                  <div className="user-controls">
+                    <span className="user-info">{userAttributes?.email || 'User'}</span>
+                    <button className="signout-button" onClick={() => {
+                      signOut?.();
+                      setShowAuth(false);
+                      setCurrentUser(null);
+                    }}>Sign Out</button>
+                  </div>
                 </div>
-                <h1>{userAttributes?.email || 'User'}'s deals</h1>
                 <div className="todo-input-container">
                   <input
                     className="todo-input"
@@ -128,6 +130,7 @@ function App() {
                 <div className="todo-grid">
                   {todos.map((todo) => (
                     <div key={todo.id} className="todo-tile">
+                      <button className="delete-button" onClick={() => deleteTodo(todo.id)}>×</button>
                       <div className="todo-content">
                         <input
                           type="checkbox"
@@ -138,7 +141,6 @@ function App() {
                           {todo.content}
                         </span>
                       </div>
-                      <button onClick={() => deleteTodo(todo.id)}>Delete</button>
                     </div>
                   ))}
                 </div>
