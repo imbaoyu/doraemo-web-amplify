@@ -12,7 +12,7 @@ const client = generateClient<Schema>();
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
+  const [userAttributes, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [newTodoContent, setNewTodoContent] = useState("");
@@ -77,19 +77,15 @@ function App() {
   }, []);
 
   const LandingPage = () => (
-    <div style={{ padding: '20px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Welcome to Our App</h1>
-        <div>
-          <button onClick={() => setShowAuth(true)}>Login</button>
-          <button onClick={() => setShowAuth(true)}>Sign Up</button>
-        </div>
-      </header>
-      <main>
-        <h2>Your Amazing App Description</h2>
-        <p>This is where you can describe your app's features and benefits.</p>
-      </main>
-    </div>
+    <>
+      <Banner />
+      <div style={{ padding: '20px' }}>
+        <main>
+          <h2>Your Amazing App Description</h2>
+          <p>This is where you can describe your app's features and benefits.</p>
+        </main>
+      </div>
+    </>
   );
 
   return (
@@ -107,11 +103,14 @@ function App() {
             
             return (
               <main>
-                <Banner onSignOut={() => {
-                  signOut?.();
-                  setShowAuth(false);
-                  setCurrentUser(null);
-                }} />
+                <Banner 
+                  isAuthenticated={isAuthenticated} 
+                  onSignOut={() => {
+                    signOut?.();
+                    setShowAuth(false);
+                    setCurrentUser(null);
+                  }} 
+                />
                 <div className="todo-input-container">
                   <input
                     className="todo-input"
