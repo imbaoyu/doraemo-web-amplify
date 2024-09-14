@@ -1,5 +1,6 @@
-import { signInWithRedirect, fetchUserAttributes } from 'aws-amplify/auth';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchUserAttributes } from 'aws-amplify/auth';
 
 interface BannerProps {
   isAuthenticated?: boolean;
@@ -8,6 +9,7 @@ interface BannerProps {
 
 function Banner({ isAuthenticated, onSignOut }: BannerProps) {
   const [userEmail, setUserEmail] = useState<string | undefined>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -19,20 +21,12 @@ function Banner({ isAuthenticated, onSignOut }: BannerProps) {
     }
   }, [isAuthenticated]);
 
-  const handleSignIn = async () => {
-    try {
-      await signInWithRedirect();
-    } catch (error) {
-      console.error('Error signing in:', error);
-    }
+  const handleSignIn = () => {
+    navigate('/deals');
   };
 
-  const handleSignUp = async () => {
-    try {
-      await signInWithRedirect();
-    } catch (error) {
-      console.error('Error redirecting to sign up:', error);
-    }
+  const handleSignUp = () => {
+    navigate('/deals');
   };
 
   return (

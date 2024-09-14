@@ -6,7 +6,6 @@ import { getCurrentUser, fetchUserAttributes, FetchUserAttributesOutput } from '
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 import Banner from './Banner';
-import LandingPage from './LandingPage';
 
 const client = generateClient<Schema>();
 
@@ -78,61 +77,55 @@ function App() {
   }, []);
 
   return (
-    <>
-      {(!isAuthenticated && !showAuth) ? (
-        <LandingPage />
-      ) : (
-        <Authenticator socialProviders={['google']}>
-          {({ signOut, user }) => {
-            if (user && !currentUser) {
-              setCurrentUser(user);
-              setShowAuth(true);
-              console.log("is logged in");
-            }
-            
-            return (
-              <main>
-                <Banner 
-                  isAuthenticated={isAuthenticated} 
-                  onSignOut={() => {
-                    signOut?.();
-                    setShowAuth(false);
-                    setCurrentUser(null);
-                  }} 
-                />
-                <div className="todo-input-container">
-                  <input
-                    className="todo-input"
-                    type="text"
-                    value={newTodoContent}
-                    onChange={(e) => setNewTodoContent(e.target.value)}
-                    placeholder="Enter new todo"
-                  />
-                  <button onClick={createTodo}>Add Todo</button>
+    <Authenticator socialProviders={['google']}>
+      {({ signOut, user }) => {
+        if (user && !currentUser) {
+          setCurrentUser(user);
+          setShowAuth(true);
+          console.log("is logged in");
+        }
+        
+        return (
+          <main>
+            <Banner 
+              isAuthenticated={isAuthenticated} 
+              onSignOut={() => {
+                signOut?.();
+                setShowAuth(false);
+                setCurrentUser(null);
+              }} 
+            />
+            <div className="todo-input-container">
+              <input
+                className="todo-input"
+                type="text"
+                value={newTodoContent}
+                onChange={(e) => setNewTodoContent(e.target.value)}
+                placeholder="Enter new todo"
+              />
+              <button onClick={createTodo}>Add Todo</button>
+            </div>
+            <div className="todo-grid">
+              {todos.map((todo) => (
+                <div key={todo.id} className="todo-tile">
+                  <button className="delete-button" onClick={() => deleteTodo(todo.id)}>×</button>
+                  <div className="todo-content">
+                    <input
+                      type="checkbox"
+                      checked={todo.isDone ?? false}
+                      onChange={() => toggleTodo(todo.id, todo.isDone ?? false)}
+                    />
+                    <span className="todo-text" style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
+                      {todo.content}
+                    </span>
+                  </div>
                 </div>
-                <div className="todo-grid">
-                  {todos.map((todo) => (
-                    <div key={todo.id} className="todo-tile">
-                      <button className="delete-button" onClick={() => deleteTodo(todo.id)}>×</button>
-                      <div className="todo-content">
-                        <input
-                          type="checkbox"
-                          checked={todo.isDone ?? false}
-                          onChange={() => toggleTodo(todo.id, todo.isDone ?? false)}
-                        />
-                        <span className="todo-text" style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
-                          {todo.content}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </main>
-            );
-          }}
-        </Authenticator>
-      )}
-    </>
+              ))}
+            </div>
+          </main>
+        );
+      }}
+    </Authenticator>
   );
 }
 
