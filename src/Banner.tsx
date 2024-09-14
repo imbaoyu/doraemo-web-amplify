@@ -1,4 +1,3 @@
-import { useAuthenticator } from '@aws-amplify/ui-react';
 import { signInWithRedirect, fetchUserAttributes } from 'aws-amplify/auth';
 import { useState, useEffect } from 'react';
 

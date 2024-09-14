@@ -6,6 +6,7 @@ import { getCurrentUser, fetchUserAttributes, FetchUserAttributesOutput } from '
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 import Banner from './Banner';
+import LandingPage from './LandingPage';
 
 const client = generateClient<Schema>();
 
@@ -75,18 +76,6 @@ function App() {
       console.error("Error updating todo:", error);
     });
   }, []);
-
-  const LandingPage = () => (
-    <>
-      <Banner />
-      <div style={{ padding: '20px' }}>
-        <main>
-          <h2>Your Amazing App Description</h2>
-          <p>This is where you can describe your app's features and benefits.</p>
-        </main>
-      </div>
-    </>
-  );
 
   return (
     <>
