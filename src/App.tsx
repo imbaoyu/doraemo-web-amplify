@@ -5,13 +5,14 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import { getCurrentUser, fetchUserAttributes, FetchUserAttributesOutput } from 'aws-amplify/auth';
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
+import Banner from './Banner';
 
 const client = generateClient<Schema>();
 
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [userAttributes, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
+  const [setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [newTodoContent, setNewTodoContent] = useState("");
@@ -106,17 +107,11 @@ function App() {
             
             return (
               <main>
-                <div className="top-banner">
-                  <h1>Amazing Deals</h1>
-                  <div className="user-controls">
-                    <span className="user-info">{userAttributes?.email || 'User'}</span>
-                    <button className="signout-button" onClick={() => {
-                      signOut?.();
-                      setShowAuth(false);
-                      setCurrentUser(null);
-                    }}>Sign Out</button>
-                  </div>
-                </div>
+                <Banner onSignOut={() => {
+                  signOut?.();
+                  setShowAuth(false);
+                  setCurrentUser(null);
+                }} />
                 <div className="todo-input-container">
                   <input
                     className="todo-input"
