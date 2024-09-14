@@ -12,9 +12,9 @@ const client = generateClient<Schema>();
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [userAttributes, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
+  const [, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
+  const [, setShowAuth] = useState(false);
   const [newTodoContent, setNewTodoContent] = useState("");
 
   useEffect(() => {
