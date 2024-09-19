@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import Banner from './Banner';
-import { fetchUserAttributes } from 'aws-amplify/auth';
+import { fetchUserAttributes, signOut } from 'aws-amplify/auth';
+import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | undefined>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAuthState = async () => {
       try {
-        //const user = await getCurrentUser();
         setIsAuthenticated(true);
         const attributes = await fetchUserAttributes();
         setUserEmail(attributes.email);
@@ -21,9 +22,20 @@ const LandingPage = () => {
     checkAuthState();
   }, []);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setUserEmail(undefined);
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out: ', error);
+    }
+  };
+
   return (
     <>
-      <Banner isAuthenticated={isAuthenticated} />
+      <Banner isAuthenticated={isAuthenticated} onSignOut={handleSignOut} />
       <div style={{ padding: '20px' }}>
         <main>
           {isAuthenticated ? (
