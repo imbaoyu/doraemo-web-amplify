@@ -9,16 +9,12 @@ import Banner from './Banner';
 
 const client = generateClient<Schema>();
 
-function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
+function Feeds() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [newTodoContent, setNewTodoContent] = useState("");
-
-  useEffect(() => {
-    checkAuthState();
-  }, []);
+  const [feeds, setFeeds] = useState<Array<Schema["Feed"]["type"]>>([]);
+  const [newFeedContent, setNewFeedContent] = useState("");
 
   async function checkAuthState() {
     try {
@@ -39,10 +35,15 @@ function App() {
   }
 
   useEffect(() => {
+    checkAuthState();
+  }, []);
+
+
+  useEffect(() => {
     if (currentUser) {
-      setTodos([]); // Reset todos when user changes
+      setFeeds([]); // Reset todos when user changes
       const subscription = client.models.Todo.observeQuery().subscribe({
-        next: (data) => setTodos([...data.items]),
+        next: (data) => setFeeds([...data.items]),
       });
 
       return () => subscription.unsubscribe();
@@ -55,25 +56,22 @@ function App() {
     }
   }, [currentUser]);
 
-  const createTodo = useCallback(() => {
-    if (newTodoContent.trim()) {
-      client.models.Todo.create({ content: newTodoContent, isDone: false });
-      setNewTodoContent("");
+  const createFeed = useCallback(() => {
+    if (newFeedContent.trim()) {
+      client.models.Feed.create({ 
+        title: "New Feed", 
+        content: newFeedContent, 
+        author: currentUser.attributes.email,
+        url: "https://example.com"
+      });
+      setNewFeedContent("");
     }
-  }, [newTodoContent]);
+  }, [newFeedContent]);
 
-  const deleteTodo = useCallback((id: string) => {
-    client.models.Todo.delete({ id });
+  const deleteFeed = useCallback((id: string) => {
+    client.models.Feed.delete({ id });
   }, []);
 
-  const toggleTodo = useCallback((id: string, currentIsDone: boolean) => {
-    client.models.Todo.update({
-      id: id,
-      isDone: !currentIsDone
-    }).catch(error => {
-      console.error("Error updating todo:", error);
-    });
-  }, []);
 
   return (
     <Authenticator socialProviders={['google']}>
@@ -96,24 +94,19 @@ function App() {
               <input
                 className="todo-input"
                 type="text"
-                value={newTodoContent}
-                onChange={(e) => setNewTodoContent(e.target.value)}
+                value={newFeedContent}
+                onChange={(e) => setNewFeedContent(e.target.value)}
                 placeholder="Enter new todo"
               />
-              <button onClick={createTodo}>Add Todo</button>
+              <button onClick={createFeed}>Add Todo</button>
             </div>
             <div className="todo-grid">
-              {todos.map((todo) => (
-                <div key={todo.id} className="todo-tile">
-                  <button className="delete-button" onClick={() => deleteTodo(todo.id)}>×</button>
-                  <div className="todo-content">
-                    <input
-                      type="checkbox"
-                      checked={todo.isDone ?? false}
-                      onChange={() => toggleTodo(todo.id, todo.isDone ?? false)}
-                    />
-                    <span className="todo-text" style={{ textDecoration: todo.isDone ? 'line-through' : 'none' }}>
-                      {todo.content}
+              {feeds.map((feed) => (
+                <div key={feed.id} className="feed-tile">
+                  <button className="delete-button" onClick={() => deleteFeed(feed.id)}>×</button>
+                  <div className="feed-content">
+                    <span className="feed-text">
+                      {feed.content}
                     </span>
                   </div>
                 </div>
@@ -126,4 +119,4 @@ function App() {
   );
 }
 
-export default App;
+export default Feeds;

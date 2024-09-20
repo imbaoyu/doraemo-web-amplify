@@ -13,6 +13,12 @@ const schema = a.schema({
       isDone: a.boolean().default(false),
     })
     .authorization((allow) => [allow.owner()]),
+  Feed: a.model({
+    title: a.string(),
+    content: a.string(),
+    url: a.string(),
+    author: a.string(),
+  }).authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -22,9 +28,9 @@ export const data = defineData({
   authorizationModes: {
     defaultAuthorizationMode: "userPool",
     // API Key is used for a.allow.public() rules
-    // apiKeyAuthorizationMode: {
-    //  expiresInDays: 30,
-    //},
+    apiKeyAuthorizationMode: {
+      expiresInDays: 30,
+    },
   },
 });
 
