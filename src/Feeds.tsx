@@ -9,6 +9,8 @@ import Banner from './Banner';
 
 const client = generateClient<Schema>();
 
+const MAX_CHARACTERS = 400;
+
 function Feeds() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
@@ -40,15 +42,12 @@ function Feeds() {
 
 
   useEffect(() => {
-    if (currentUser) {
-      setFeeds([]); // Reset todos when user changes
-      const subscription = client.models.Todo.observeQuery().subscribe({
-        next: (data) => setFeeds([...data.items]),
-      });
+    const subscription = client.models.Feed.observeQuery().subscribe({
+      next: (data) => setFeeds([...data.items].reverse()),
+    });
 
-      return () => subscription.unsubscribe();
-    }
-  }, [currentUser]);
+    return () => subscription.unsubscribe();
+  }, []); // Remove dependency on currentUser
 
   useEffect(() => {
     if(currentUser) {
@@ -56,13 +55,17 @@ function Feeds() {
     }
   }, [currentUser]);
 
-  const createFeed = useCallback(() => {
+  const createFeed = useCallback((user: any) => {
     if (newFeedContent.trim()) {
+      const lines = newFeedContent.split('\n');
+      const title = lines[0].trim();
+      const content = lines.slice(1).join('\n').trim();
+      
       client.models.Feed.create({ 
-        title: "New Feed", 
-        content: newFeedContent, 
-        author: currentUser.attributes.email,
-        url: "https://example.com"
+        title: title || "Untitled", 
+        content: content || title,
+        author: user?.attributes?.email || "Anonymous",
+        url: "https://example.com",
       });
       setNewFeedContent("");
     }
@@ -73,48 +76,55 @@ function Feeds() {
   }, []);
 
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const input = e.target.value;
+    if (input.length <= MAX_CHARACTERS) {
+      setNewFeedContent(input);
+    }
+  };
+
   return (
     <Authenticator socialProviders={['google']}>
-      {({ signOut, user }) => {
-        if (user && !currentUser) {
-          setCurrentUser(user);
-          console.log("is logged in");
-        }
-        
-        return (
-          <main>
-            <Banner 
-              isAuthenticated={isAuthenticated} 
-              onSignOut={() => {
-                signOut?.();
-                setCurrentUser(null);
-              }} 
-            />
-            <div className="todo-input-container">
-              <input
-                className="todo-input"
-                type="text"
+      {({ signOut, user }) => (
+        <>
+          <Banner 
+            isAuthenticated={isAuthenticated} 
+            onSignOut={() => {
+              signOut?.();
+              setCurrentUser(null);
+            }} 
+          />
+          <main className="content-container">
+            <div className="feed-input-container">
+              <textarea
+                className="feed-input"
                 value={newFeedContent}
-                onChange={(e) => setNewFeedContent(e.target.value)}
-                placeholder="Enter new todo"
+                onChange={handleInputChange}
+                placeholder="What's on your mind?"
+                rows={4}
+                maxLength={MAX_CHARACTERS}
               />
-              <button onClick={createFeed}>Add Todo</button>
-            </div>
-            <div className="todo-grid">
-              {feeds.map((feed) => (
-                <div key={feed.id} className="feed-tile">
-                  <button className="delete-button" onClick={() => deleteFeed(feed.id)}>×</button>
-                  <div className="feed-content">
-                    <span className="feed-text">
-                      {feed.content}
-                    </span>
-                  </div>
+              <div className="input-footer">
+                <div className="character-count">
+                  {newFeedContent.length}/{MAX_CHARACTERS}
                 </div>
-              ))}
+                <button className="post-button" onClick={() => createFeed(user)}>Post</button>
+              </div>
             </div>
+            <ul className="feed-list">
+              {feeds.map((feed) => (
+                <li key={feed.id} className="feed-item">
+                  <button className="delete-button" onClick={() => deleteFeed(feed.id)}>×</button>
+                  <h3 className="feed-title">{feed.title}</h3>
+                  <p className="feed-author">{feed.author}</p>
+                  <p className="feed-content">{feed.content}</p>
+                  {feed.url && <a href={feed.url} className="feed-url">{feed.url}</a>}
+                </li>
+              ))}
+            </ul>
           </main>
-        );
-      }}
+        </>
+      )}
     </Authenticator>
   );
 }
