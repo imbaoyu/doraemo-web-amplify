@@ -14,10 +14,10 @@ const schema = a.schema({
     })
     .authorization((allow) => [allow.owner()]),
   Feed: a.model({
-    title: a.string(),
-    content: a.string(),
-    url: a.string(),
-    author: a.string(),
+    title: a.string().required(),
+    author: a.string().required(),
+    content: a.string().required(),
+    images: a.string().array(),
   }).authorization((allow) => [allow.owner()]),
 });
 
