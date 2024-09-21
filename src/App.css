@@ -20,7 +20,7 @@
 .menu {
   width: 200px;
   background-color: #f0f0f0;
-  padding-top: 20px; /* Reduced from 20px */
+  padding: 36px 0; /* Vertical padding only */
   height: calc(100vh - 60px); /* Subtract banner height */
   position: fixed;
   top: 60px; /* Position below the banner */
@@ -30,17 +30,19 @@
 
 .menu a {
   display: block;
-  margin-bottom: 15px;
-  padding: 0 20px; /* Add horizontal padding */
+  padding: 10px 20px 10px 80px; /* Top Right Bottom Left */
+  margin-bottom: 5px;
   text-decoration: none;
   color: #333;
   font-weight: bold;
   font-size: 18px;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  text-align: left;
 }
 
 .menu a:hover {
   color: #ec7211;
+  background-color: #e0e0e0;
 }
 
 .content-container {
@@ -178,7 +180,7 @@
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
-  padding-top: 20px; /* Add some top padding to accommodate the delete button */
+  padding-top: 40px; /* Add some top padding to accommodate the delete button */
 }
 
 .todo-text {
@@ -212,18 +214,19 @@
 }
 
 .post-button {
-  padding: 6px 12px;
-  background-color: #4CAF50;
+  padding: 10px 20px; /* Increased padding for a bigger button */
+  background-color: #1DA1F2; /* Twitter's blue color */
   color: white;
   border: none;
-  border-radius: 15px;
+  border-radius: 9999px; /* Fully rounded corners */
   cursor: pointer;
-  font-size: 12px;
+  font-size: 16px; /* Increased font size */
+  font-weight: bold;
   transition: background-color 0.3s;
 }
 
 .post-button:hover {
-  background-color: #45a049;
+  background-color: #1a91da; /* Slightly darker blue on hover */
 }
 
 .feed-grid {
@@ -260,7 +263,7 @@
 
 .feed-item {
   border: 1px solid #ddd;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   padding: 15px;
   position: relative;
   text-align: left;
@@ -283,21 +286,6 @@
   cursor: pointer;
 }
 
-.post-button {
-  padding: 6px 12px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s;
-}
-
-.post-button:hover {
-  background-color: #45a049;
-}
-
 .content-container {
   max-width: 700px; /* Increased from 500px to 600px */
   margin: 0 auto;
@@ -313,23 +301,10 @@
 }
 
 .character-count {
-  font-size: 0.8em;
+  font-size: 1em; /* Increased from 0.8em */
   color: #666;
-}
-
-.post-button {
-  padding: 6px 12px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s;
-}
-
-.post-button:hover {
-  background-color: #45a049;
+  margin-right: 20px; /* Add some margin to move it right */
+  margin-left: 5px
 }
 
 .feed-input {
