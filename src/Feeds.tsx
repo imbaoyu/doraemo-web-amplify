@@ -6,6 +6,7 @@ import { getCurrentUser, fetchUserAttributes, FetchUserAttributesOutput } from '
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 import Banner from './Banner';
+import Menu from './Menu';
 
 const client = generateClient<Schema>();
 
@@ -86,7 +87,7 @@ function Feeds() {
   return (
     <Authenticator socialProviders={['google']}>
       {({ signOut, user }) => (
-        <>
+        <div className="page-container">
           <Banner 
             isAuthenticated={isAuthenticated} 
             onSignOut={() => {
@@ -94,36 +95,41 @@ function Feeds() {
               setCurrentUser(null);
             }} 
           />
-          <main className="content-container">
-            <div className="feed-input-container">
-              <textarea
-                className="feed-input"
-                value={newFeedContent}
-                onChange={handleInputChange}
-                placeholder="What's on your mind?"
-                rows={4}
-                maxLength={MAX_CHARACTERS}
-              />
-              <div className="input-footer">
-                <div className="character-count">
-                  {newFeedContent.length}/{MAX_CHARACTERS}
+          <div className="content-wrapper">
+            <Menu />
+            <main className="content-container">
+              <div className="feed-content">
+                <div className="feed-input-container">
+                  <textarea
+                    className="feed-input"
+                    value={newFeedContent}
+                    onChange={handleInputChange}
+                    placeholder="What's on your mind?"
+                    rows={4}
+                    maxLength={MAX_CHARACTERS}
+                  />
+                  <div className="input-footer">
+                    <div className="character-count">
+                      {newFeedContent.length}/{MAX_CHARACTERS}
+                    </div>
+                    <button className="post-button" onClick={() => createFeed(user)}>Post</button>
+                  </div>
                 </div>
-                <button className="post-button" onClick={() => createFeed(user)}>Post</button>
+                <ul className="feed-list">
+                  {feeds.map((feed) => (
+                    <li key={feed.id} className="feed-item">
+                      <button className="delete-button" onClick={() => deleteFeed(feed.id)}>×</button>
+                      <h3 className="feed-title">{feed.title}</h3>
+                      <p className="feed-author">{feed.author}</p>
+                      <p className="feed-content">{feed.content}</p>
+                      {feed.url && <a href={feed.url} className="feed-url">{feed.url}</a>}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-            <ul className="feed-list">
-              {feeds.map((feed) => (
-                <li key={feed.id} className="feed-item">
-                  <button className="delete-button" onClick={() => deleteFeed(feed.id)}>×</button>
-                  <h3 className="feed-title">{feed.title}</h3>
-                  <p className="feed-author">{feed.author}</p>
-                  <p className="feed-content">{feed.content}</p>
-                  {feed.url && <a href={feed.url} className="feed-url">{feed.url}</a>}
-                </li>
-              ))}
-            </ul>
-          </main>
-        </>
+            </main>
+          </div>
+        </div>
       )}
     </Authenticator>
   );

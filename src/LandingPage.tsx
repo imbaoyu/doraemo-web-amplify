@@ -41,13 +41,13 @@ const LandingPage = () => {
           {isAuthenticated ? (
             <>
               <h2>Welcome Back, {userEmail}!</h2>
-              <p>Explore the amazing deals we have for you.</p>
-              <a href="/deals">Go to Deals Page</a>
+              <p>Manage your social media accounts from one place!</p>
+              <a href="/feeds">Go to Feeds Page</a>
             </>
           ) : (
             <>
-              <h2>Your Amazing App Description</h2>
-              <p>This is where you can describe your app's features and benefits.</p>
+              <h2>Your One Stop Social Media Hub</h2>
+              <p>This is where you can manage all your social media accounts from one place!</p>
             </>
           )}
         </main>

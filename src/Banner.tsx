@@ -31,7 +31,7 @@ function Banner({ isAuthenticated, onSignOut }: BannerProps) {
 
   return (
     <div className="top-banner">
-      <h1>Amazing Deals</h1>
+      <h1>My Social Hub</h1>
       <div className="user-controls">
         {isAuthenticated ? (
           <>
