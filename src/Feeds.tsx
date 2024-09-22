@@ -4,6 +4,7 @@ import { generateClient } from "aws-amplify/data";
 import { Authenticator } from "@aws-amplify/ui-react";
 import { getCurrentUser, fetchUserAttributes, FetchUserAttributesOutput } from 'aws-amplify/auth';
 import { uploadData, getUrl } from 'aws-amplify/storage';
+import { UploadDataWithPathInput } from '@aws-amplify/storage';
 import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 import Banner from './Banner';
@@ -58,19 +59,10 @@ function Feeds() {
     }
   }, [currentUser]);
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      try {
-        await uploadData({
-          key: `feeds/${Date.now()}-${file.name}`,
-          data: file,
-          options: { accessLevel: 'private' }
-        }).result;
-        setImages([...images, file]);
-      } catch (error) {
-        console.error('Error uploading file:', error);
-      }
+      setImages([...images, file]);
     }
   };
 
@@ -81,14 +73,18 @@ function Feeds() {
       const content = lines.slice(1).join('\n').trim();
 
       const uploadedImageUrls = await Promise.all(images.map(async (file) => {
-        const key = `feeds/${Date.now()}-${file.name}`;
-        await uploadData({
-          key,
+        const path = `doraemo-feed-images/${Date.now()}-${file.name}`;
+        const uploadInput: UploadDataWithPathInput = {
+          path,
           data: file,
-          options: { accessLevel: 'private' }
-        }).result;
-        const { url } = await getUrl({ key });
-        return url.toString(); // Convert URL to string
+          options: {
+            contentType: file.type,
+          }
+        };
+        
+        uploadData(uploadInput);
+        const urlOutput = await getUrl({ path });
+        return urlOutput.url.toString(); // Convert URL to string
       }));
       
       client.models.Feed.create({ 
