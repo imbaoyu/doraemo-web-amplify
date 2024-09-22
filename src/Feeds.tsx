@@ -23,6 +23,18 @@ function Feeds() {
   const [feeds, setFeeds] = useState<Array<Schema["Feed"]["type"]>>([]);
   const [newFeedContent, setNewFeedContent] = useState("");
   const [images, setImages] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+
+  // get image signed url from s3 so it can be rendered in the browser
+  const getImageUrl = useCallback(async (path: string) => {
+    try {
+      const result = await getUrl({ path });
+      return result.url;
+    } catch (error) {
+      console.error("Error getting image URL:", error);
+      return null;
+    }
+  }, []);
 
   async function checkAuthState() {
     try {
@@ -49,13 +61,25 @@ function Feeds() {
 
   useEffect(() => {
     const subscription = client.models.Feed.observeQuery().subscribe({
-      next: (data) => setFeeds([...data.items].sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )),
+      next: async (data) => {
+        const newImageUrls: Record<string, string> = {};
+        await Promise.all(data.items.flatMap(feed => 
+          (feed.images || []).map(async (image) => {
+            if (image && !imageUrls[image]) {
+              const url = await getImageUrl(image);
+              if (url) newImageUrls[image] = url.toString();
+            }
+          })
+        ));
+        setImageUrls(prev => ({ ...prev, ...newImageUrls }));
+        setFeeds(data.items.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ));
+      },
     });
 
     return () => subscription.unsubscribe();
-  }, []); // Remove dependency on currentUser
+  }, [getImageUrl, imageUrls]);
 
   useEffect(() => {
     if(currentUser) {
@@ -76,7 +100,7 @@ function Feeds() {
       const title = lines[0].trim();
       const content = lines.slice(1).join('\n').trim();
 
-      const uploadedImageUrls = await Promise.all(images.map(async (file) => {
+      const uploadedImagePaths = await Promise.all(images.map(async (file) => {
         const path = `doraemo-feed-images/${Date.now()}-${file.name}`;
         const uploadInput: UploadDataWithPathInput = {
           path,
@@ -86,16 +110,15 @@ function Feeds() {
           }
         };
         
-        uploadData(uploadInput);
-        const urlOutput = await getUrl({ path });
-        return urlOutput.url.toString(); // Convert URL to string
+        const uploadResult = await uploadData(uploadInput).result;
+        return uploadResult?.path;
       }));
       
-      client.models.Feed.create({ 
+      await client.models.Feed.create({ 
         title: title || "Untitled", 
         content: content || title,
         author: user?.attributes?.email || "Anonymous",
-        images: uploadedImageUrls,
+        images: uploadedImagePaths,
       });
       setNewFeedContent("");
       setImages([]);
@@ -181,7 +204,7 @@ function Feeds() {
                       <p className="feed-author">{feed.author}</p>
                       <p className="feed-content">{feed.content}</p>
                       {feed.images && feed.images.map((image, index) => (
-                        image && <img key={index} src={image} alt={`Feed image ${index + 1}`} />
+                        image && <img key={index} src={imageUrls[image]} alt={`Feed image ${index + 1}`} />
                       ))}
                     </li>
                   ))}
