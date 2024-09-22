@@ -10,6 +10,8 @@ import type { Schema } from "../amplify/data/resource";
 import Banner from './Banner';
 import Menu from './Menu';
 
+import { remove } from 'aws-amplify/storage';
+
 const client = generateClient<Schema>();
 
 const MAX_CHARACTERS = 400;
@@ -47,7 +49,9 @@ function Feeds() {
 
   useEffect(() => {
     const subscription = client.models.Feed.observeQuery().subscribe({
-      next: (data) => setFeeds([...data.items].reverse()),
+      next: (data) => setFeeds([...data.items].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )),
     });
 
     return () => subscription.unsubscribe();
@@ -98,9 +102,28 @@ function Feeds() {
     }
   }, [newFeedContent, images]);
 
-  const deleteFeed = useCallback((id: string) => {
-    client.models.Feed.delete({ id });
-  }, []);
+  const deleteFeed = useCallback(async (id: string) => {
+    const feedToDelete = feeds.find(feed => feed.id === id);
+    if (feedToDelete && feedToDelete.images) {
+      await Promise.all(feedToDelete.images.map(async (imageUrl) => {
+        if (imageUrl) {
+          try {
+            const path = new URL(imageUrl).pathname.slice(1); // Remove leading '/'
+            await remove({ path });
+          } catch (error) {
+            console.error(`Failed to delete image: ${imageUrl}`, error);
+            // Continue execution even if image deletion fails
+          }
+        }
+      }));
+    }
+    try {
+      await client.models.Feed.delete({ id });
+    } catch (error) {
+      console.error(`Failed to delete feed with id: ${id}`, error);
+      throw error; // Re-throw the error if feed deletion fails
+    }
+  }, [feeds]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const input = e.target.value;
