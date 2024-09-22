@@ -9,6 +9,7 @@ import "@aws-amplify/ui-react/styles.css";
 import type { Schema } from "../amplify/data/resource";
 import Banner from './Banner';
 import Menu from './Menu';
+import { FaImage } from 'react-icons/fa'; // Change this import
 
 import { remove } from 'aws-amplify/storage';
 
@@ -172,23 +173,30 @@ function Feeds() {
               <div className="feed-content">
                 <div className="feed-input-container">
                   <textarea
-                    className="feed-input"
                     value={newFeedContent}
                     onChange={handleInputChange}
                     placeholder="What's on your mind?"
-                    rows={4}
                     maxLength={MAX_CHARACTERS}
+                    className="feed-input"
                   />
                   <div className="input-footer">
-                    <div className="character-count">
-                      {newFeedContent.length}/{MAX_CHARACTERS}
+                    <div className="left-side">
+                      <label className="file-upload-label">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          style={{ display: 'none' }}
+                        />
+                        <FaImage className="media-icon" />
+                      </label>
                     </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
-                    <button className="post-button" onClick={() => createFeed(user)}>Post</button>
+                    <div className="right-side">
+                      <div className="character-count">
+                        {newFeedContent.length}/{MAX_CHARACTERS}
+                      </div>
+                      <button className="post-button" onClick={() => createFeed(user)}>Post</button>
+                    </div>
                   </div>
                   <div className="image-preview">
                     {images.map((image, index) => (

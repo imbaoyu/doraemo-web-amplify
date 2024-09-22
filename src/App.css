@@ -201,10 +201,11 @@
 }
 
 .feed-input-container {
-  margin-top: 20px; /* Add a small top margin */
+  margin-top: 20px;
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .button-container {
@@ -297,7 +298,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 0;
+  margin-left: 5px;
 }
 
 .character-count {
@@ -309,10 +311,12 @@
 
 .feed-input {
   width: 100%;
-  resize: none;
+  min-height: 100px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  resize: none; /* Make the input box not resizable */
+  margin-bottom: 10px; /* Add padding between input box and post button */
 }
 
 .image-preview {
@@ -334,4 +338,41 @@
   height: auto;
   margin-top: 10px;
   border-radius: 4px;
+}
+
+.file-upload-label {
+  cursor: pointer;
+}
+
+.clipper-icon {
+  font-size: 20px;
+  color: #555;
+}
+
+.clipper-icon:hover {
+  color: #007bff;
+}
+
+.media-icon {
+  cursor: pointer;
+  font-size: 20px;
+  color: #1DA1F2;
+}
+
+.media-icon:hover {
+  color: #1a91da;
+}
+
+.character-count {
+  font-size: 14px;
+  color: #666;
+}
+
+.left-side, .right-side {
+  display: flex;
+  align-items: center;
+}
+
+.right-side {
+  gap: 10px;
 }
