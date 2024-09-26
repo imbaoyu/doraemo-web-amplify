@@ -1,4 +1,4 @@
-export function request(ctx: { env: { S3_BUCKET_NAME: string }, arguments: { path: string } }) {
+export function request(ctx) {
     return {
       method: "POST",
       resourcePath: "/",
@@ -19,16 +19,11 @@ export function request(ctx: { env: { S3_BUCKET_NAME: string }, arguments: { pat
     };
 }
   
-export function response(ctx: { result: { body: string } }) {
-    interface DetectedObject {
-        Name: string;
-        Confidence: number;
-    }
-
+export function response(ctx) {
     return JSON.parse(ctx.result.body)
         .Labels
-        .filter((item: DetectedObject) => item.Confidence > 70)
-        .map((item: DetectedObject) => item.Name)
+        .filter((item) => item.Confidence > 70)
+        .map((item) => item.Name)
         .join(", ")
         .trim();
 }
