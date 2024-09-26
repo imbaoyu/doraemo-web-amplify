@@ -30,7 +30,7 @@ const schema = a.schema({
     .authorization((allow) => [allow.authenticated()])
     .handler(
       a.handler.custom({
-        entry: "./identifyObject.js",
+        entry: "./identifyObject",
         dataSource: "RekognitionDataSource",
       })
     ),

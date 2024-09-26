@@ -58,9 +58,9 @@ function Feeds() {
         }
     }
 
-    // Function to recognize text from the uploaded image
+    // Function to recognize object from the uploaded image
     async function recognizeObject(path: string): Promise<IdentifyObjectReturnType | null> {
-        // Identifying text in the uploaded image
+        // Identifying object in the uploaded image
         const { data } = await client.queries.identifyObject({
             path, // File name
         });
