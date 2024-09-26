@@ -14,6 +14,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [, setShowAuth] = useState(false);
   const [newTodoContent, setNewTodoContent] = useState("");
 
   useEffect(() => {
@@ -80,6 +81,7 @@ function App() {
       {({ signOut, user }) => {
         if (user && !currentUser) {
           setCurrentUser(user);
+          setShowAuth(true);
           console.log("is logged in");
         }
         
@@ -89,6 +91,7 @@ function App() {
               isAuthenticated={isAuthenticated} 
               onSignOut={() => {
                 signOut?.();
+                setShowAuth(false);
                 setCurrentUser(null);
               }} 
             />

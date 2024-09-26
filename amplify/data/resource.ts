@@ -13,12 +13,27 @@ const schema = a.schema({
       isDone: a.boolean().default(false),
     })
     .authorization((allow) => [allow.owner()]),
+
   Feed: a.model({
     title: a.string().required(),
     author: a.string().required(),
     content: a.string().required(),
     images: a.string().array(),
   }).authorization((allow) => [allow.owner()]),
+
+  identifyObject: a
+    .query()
+    .arguments({
+      path: a.string(),
+    })
+    .returns(a.string())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(
+      a.handler.custom({
+        entry: "./identifyObject.js",
+        dataSource: "RekognitionDataSource",
+      })
+    ),
 });
 
 export type Schema = ClientSchema<typeof schema>;
