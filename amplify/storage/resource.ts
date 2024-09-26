@@ -11,6 +11,6 @@ export const feedStorage = defineStorage({
 export const rekognitionStorage = defineStorage({
   name: "doraemo-web-amplify-rekognition",
   access: (allow) => ({
-    "*": [allow.authenticated.to(["list", "write", "get"])],
+    "/*": [allow.authenticated.to(["write", "get", "list"])],
   }),
 });
