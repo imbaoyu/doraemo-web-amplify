@@ -8,18 +8,23 @@ import { Amplify } from "aws-amplify";
 import outputs from "../amplify_outputs.json";
 import LandingPage from "./LandingPage.tsx";
 import NotFoundPage from "./NotFoundPage.tsx";
+import withAutoLogout from "./AutoLogout.tsx";
 
 Amplify.configure(outputs);
+
+const AutoLogoutApp = withAutoLogout(() => (
+  <Routes>
+    <Route path="/" element={<LandingPage />} />
+    <Route path="/deals" element={<App />} />
+    <Route path="/feeds" element={<Feeds />} />
+    <Route path="*" element={<NotFoundPage />} />
+  </Routes>
+));
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/deals" element={<App />} />
-        <Route path="/feeds" element={<Feeds />} />
-        <Route path="*" element={<NotFoundPage />} /> {/* Add this line */}
-      </Routes>
+      <AutoLogoutApp />
     </Router>
   </React.StrictMode>
 );
