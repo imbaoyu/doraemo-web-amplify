@@ -33,7 +33,7 @@ const rekognitionDataSource = backend.data.addHttpDataSource(
 
 rekognitionDataSource.grantPrincipal.addToPrincipalPolicy(
  new PolicyStatement({
-   actions: ["rekognition:DetectObjects"],
+   actions: ["rekognition:DetectText", "rekognition:DetectLabels"],
    resources: ["*"],
  })
 );
