@@ -1,3 +1,4 @@
+// Resolver for the identifyObject query
 export function request(ctx) {
     return {
       method: "POST",

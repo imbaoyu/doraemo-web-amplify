@@ -7,10 +7,3 @@ export const feedStorage = defineStorage({
     "doraemo-feed-images/*": [allow.authenticated.to(["read", "write", "delete"])],
   }),
 });
-
-export const rekognitionStorage = defineStorage({
-  name: "doraemo-web-amplify-rekognition",
-  access: (allow) => ({
-    "doraemo-rekognition/*": [allow.authenticated.to(["write", "get", "list"])],
-  }),
-});
