@@ -19,14 +19,14 @@ backend.data.resources.cfnResources.cfnGraphqlApi.environmentVariables = {
 };
 
 const rekognitionDataSource = backend.data.addHttpDataSource(
- "RekognitionDataSource",
- `https://rekognition.${dataStack.region}.amazonaws.com`,
- {
-   authorizationConfig: {
-     signingRegion: dataStack.region,
-     signingServiceName: "rekognition",
-   },
- }
+  "RekognitionDataSource",
+  `https://rekognition.${dataStack.region}.amazonaws.com`,
+  {
+    authorizationConfig: {
+      signingRegion: dataStack.region,
+      signingServiceName: "rekognition",
+    },
+  }
 );
 
 rekognitionDataSource.grantPrincipal.addToPrincipalPolicy(
@@ -38,4 +38,4 @@ rekognitionDataSource.grantPrincipal.addToPrincipalPolicy(
 
 backend.feedStorage.resources.bucket.grantReadWrite(
   rekognitionDataSource.grantPrincipal
- );
+);
