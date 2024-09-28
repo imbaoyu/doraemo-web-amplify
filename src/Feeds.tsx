@@ -71,10 +71,15 @@ function Feeds() {
     // Function to recognize object from the uploaded image
     async function recognizeObject(path: string): Promise<IdentifyObjectReturnType | null> {
         // Identifying object in the uploaded image
+        // disable rekognition for now
+        console.log(path)
+        return null
+        /*
         const { data } = await client.queries.identifyObject({
             path, // File name
         });
         return data;
+        */
     };
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
