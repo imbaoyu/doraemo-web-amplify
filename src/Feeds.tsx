@@ -32,7 +32,7 @@ type IdentifyObjectReturnType = Schema["identifyObject"]["returnType"];
 function Feeds() {
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [, setIsAuthenticated] = useState(false);
     const [feeds, setFeeds] = useState<Array<Schema["Feed"]["type"]>>([]);
     const [newFeedContent, setNewFeedContent] = useState("");
     const [images, setImages] = useState<File[]>([]);
@@ -192,7 +192,6 @@ function Feeds() {
         {({ signOut, user }) => (
             <div className="page-container">
             <Banner 
-                isAuthenticated={isAuthenticated} 
                 onSignOut={() => {
                 signOut?.();
                 setCurrentUser(null);

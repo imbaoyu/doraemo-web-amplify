@@ -1,25 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchUserAttributes } from 'aws-amplify/auth';
+import { fetchUserAttributes, signOut } from 'aws-amplify/auth';
+import { AuthError } from '@aws-amplify/auth';
 
 interface BannerProps {
-  isAuthenticated?: boolean;
   onSignOut?: () => void;
 }
 
-function Banner({ isAuthenticated, onSignOut }: BannerProps) {
+function Banner({ onSignOut }: BannerProps) {
   const [userEmail, setUserEmail] = useState<string | undefined>();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchUserAttributes().then(attributes => {
-        setUserEmail(attributes.email);
-      }).catch(error => {
+    checkAuthState();
+  }, []);
+
+  async function checkAuthState() {
+    try {
+      const attributes = await fetchUserAttributes();
+      setUserEmail(attributes.email);
+      setIsAuthenticated(true);
+    } catch (error) {
+      if (error instanceof AuthError) {
+        console.log('User session expired.');
+        setIsAuthenticated(false);
+        setUserEmail(undefined);
+        // navigate('/');
+      } else {
         console.error('Error fetching user attributes:', error);
-      });
+      }
     }
-  }, [isAuthenticated]);
+  }
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setUserEmail(undefined);
+      if (onSignOut) onSignOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const handleSignIn = () => {
     navigate('/deals');
@@ -36,7 +60,7 @@ function Banner({ isAuthenticated, onSignOut }: BannerProps) {
         {isAuthenticated ? (
           <>
             <span className="user-info">{userEmail || 'User'}</span>
-            <button className="signout-button" onClick={onSignOut}>Sign Out</button>
+            <button className="signout-button" onClick={handleSignOut}>Sign Out</button>
           </>
         ) : (
           <>

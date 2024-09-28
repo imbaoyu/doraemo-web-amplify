@@ -13,7 +13,7 @@ function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [, setUserAttributes] = useState<FetchUserAttributesOutput | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [, setIsAuthenticated] = useState(false);
   const [, setShowAuth] = useState(false);
   const [newTodoContent, setNewTodoContent] = useState("");
 
@@ -88,7 +88,6 @@ function App() {
         return (
           <main>
             <Banner 
-              isAuthenticated={isAuthenticated} 
               onSignOut={() => {
                 signOut?.();
                 setShowAuth(false);

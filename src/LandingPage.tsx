@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import Banner from './Banner';
 import { fetchUserAttributes, signOut } from 'aws-amplify/auth';
 import { useNavigate } from 'react-router-dom';
+
+import Banner from './Banner';
 
 const LandingPage = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -35,7 +36,7 @@ const LandingPage = () => {
 
   return (
     <>
-      <Banner isAuthenticated={isAuthenticated} onSignOut={handleSignOut} />
+      <Banner onSignOut={handleSignOut} />
       <div style={{ padding: '20px' }}>
         <main>
           {isAuthenticated ? (
