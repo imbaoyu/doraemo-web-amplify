@@ -3,6 +3,10 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import Banner from './Banner';
 import Menu from './Menu';
 import './App.css';
+import { generateClient } from 'aws-amplify/api';
+
+import type { Schema } from "../amplify/data/resource";
+const client = generateClient<Schema>();
 
 interface Message {
   text: string;
@@ -20,16 +24,25 @@ function ChatPage() {
 
   useEffect(scrollToBottom, [messages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputMessage.trim() === '') return;
 
     setMessages(prevMessages => [...prevMessages, { text: inputMessage, isUser: true }]);
     setInputMessage('');
 
-    setTimeout(() => {
-      setMessages(prevMessages => [...prevMessages, { text: `You said: ${inputMessage}`, isUser: false }]);
-    }, 1000);
+    try {
+      const response = await client.queries.sendChat({
+        message: inputMessage
+      });
+      
+      // Extract the message text from the response
+      const botMessage = typeof response === 'string' ? response : "No response received";
+      setMessages(prevMessages => [...prevMessages, { text: botMessage, isUser: false }]);
+    } catch (error) {
+      console.error('Error calling sendChat query:', error);
+      setMessages(prevMessages => [...prevMessages, { text: "Sorry, I couldn't process that request.", isUser: false }]);
+    }
   };
 
   return (

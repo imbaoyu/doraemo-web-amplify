@@ -30,10 +30,23 @@ const schema = a.schema({
     .authorization((allow) => [allow.authenticated()])
     .handler(
       a.handler.custom({
-        entry: "./identifyObject.js",
+        entry: "./resolver/identifyObject.js",
         dataSource: "RekognitionDataSource",
       })
     ),
+  
+  sendChat: a
+    .query()
+    .arguments({
+      message: a.string(),
+    })
+    .returns(a.string())
+    .authorization((allow) => [allow.authenticated()])
+    .handler(
+      a.handler.custom({
+        entry: "./resolver/chatHandler.js"
+      })
+    )
 });
 
 export type Schema = ClientSchema<typeof schema>;
