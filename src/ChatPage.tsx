@@ -30,10 +30,9 @@ function ChatPage() {
 
     setMessages(prevMessages => [...prevMessages, { text: inputMessage, isUser: true }]);
     setInputMessage('');
-    const message:string = inputMessage
 
     try {
-      const response = await client.queries.sendChat({message: "bounce"});
+      const response = await client.queries.sendChat({message: inputMessage});
       
       // Extract the message text from the response
       const botMessage = typeof response === 'string' ? response : "No response received";
