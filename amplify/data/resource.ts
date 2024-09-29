@@ -38,7 +38,7 @@ const schema = a.schema({
   sendChat: a
     .query()
     .arguments({
-      message: a.string(),
+      message: a.string().required(),
     })
     .returns(a.string())
     .authorization((allow) => [allow.authenticated()])
