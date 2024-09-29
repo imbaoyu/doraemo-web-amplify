@@ -7,8 +7,7 @@ specifies that any user authenticated via an API key can "create", "read",
 "update", and "delete" any "Todo" records.
 =========================================================================*/
 const schema = a.schema({
-  Todo: a
-    .model({
+  Todo: a.model({
       content: a.string(),
       isDone: a.boolean().default(false),
     })
@@ -44,7 +43,8 @@ const schema = a.schema({
     .authorization((allow) => [allow.authenticated()])
     .handler(
       a.handler.custom({
-        entry: "./resolver/chatHandler.js"
+        entry: "./resolver/chatHandler.js",
+        dataSource: "RekognitionDataSource",
       })
     )
 });
