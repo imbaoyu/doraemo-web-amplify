@@ -39,3 +39,24 @@ rekognitionDataSource.grantPrincipal.addToPrincipalPolicy(
 backend.feedStorage.resources.bucket.grantReadWrite(
   rekognitionDataSource.grantPrincipal
 );
+
+// Add Bedrock HTTP data source
+// Bedrock endpoints: https://docs.aws.amazon.com/general/latest/gr/bedrock.html
+const bedrockDataSource = backend.data.addHttpDataSource(
+  "BedrockDataSource",
+  `https://bedrock-runtime.${dataStack.region}.amazonaws.com`,
+  {
+    authorizationConfig: {
+      signingRegion: dataStack.region,
+      signingServiceName: "bedrock",
+    },
+  }
+);
+
+// Grant permissions to invoke Bedrock models
+bedrockDataSource.grantPrincipal.addToPrincipalPolicy(
+  new PolicyStatement({
+    actions: ["bedrock:InvokeModel"],
+    resources: ["*"], // You might want to restrict this to specific model ARNs
+  })
+);

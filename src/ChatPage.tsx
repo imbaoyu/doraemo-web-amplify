@@ -32,11 +32,10 @@ function ChatPage() {
     setInputMessage('');
 
     try {
-      const response = await client.queries.sendChat({message: inputMessage});
-      
+      const { data } = await client.queries.sendChat({message: inputMessage});
+      const responseText = data ?? "No response received";
       // Extract the message text from the response
-      const botMessage = typeof response === 'string' ? response : "No response received";
-      setMessages(prevMessages => [...prevMessages, { text: botMessage, isUser: false }]);
+      setMessages(prevMessages => [...prevMessages, { text: responseText, isUser: false }]);
     } catch (error) {
       console.error('Error calling sendChat query:', error);
       setMessages(prevMessages => [...prevMessages, { text: "Sorry, I couldn't process that request.", isUser: false }]);
