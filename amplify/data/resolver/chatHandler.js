@@ -7,7 +7,7 @@ export function request(ctx) {
   // model id: https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html#model-ids-arns
   return {
     method: "POST",
-    resourcePath: "/model/meta.llama3-2-90b-instruct-v1:0/invoke",
+    resourcePath: "/model/meta.llama3-70b-instruct-v1:0/invoke",
     params: {
       body: JSON.stringify({
         prompt: `Human: ${prompt}\nAssistant:`,
@@ -25,12 +25,9 @@ export function request(ctx) {
 
 export function response(ctx) {
   console.log('Response result:', ctx.result);
-  
   // Parse the response body
   const responseBody = JSON.parse(ctx.result.body);
-  
   // Extract the generated text from the response
   const generatedText = responseBody.generation;
-  
   return generatedText.trim();
 }
