@@ -46,9 +46,12 @@
 }
 
 .content-container {
-  flex: 1;
-  padding: 0 20px 20px 220px; /* Removed top padding */
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px); /* Adjust based on your banner height */
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .top-banner {
@@ -287,13 +290,6 @@
   cursor: pointer;
 }
 
-.content-container {
-  max-width: 700px; /* Increased from 500px to 600px */
-  margin: 0 auto;
-  padding: 20px;
-  padding-top: 20px; /* Ensure content starts below the banner */
-}
-
 .input-footer {
   display: flex;
   justify-content: space-between;
@@ -378,61 +374,78 @@
 }
 
 .chat-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 80px);
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
 }
 
 .chat-messages {
-  flex-grow: 1;
-  overflow-y: auto;
-  margin-bottom: 20px;
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Reduced from 20px to bring messages closer */
 }
 
 .message {
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 5px;
-  max-width: 70%;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
 }
 
-.user {
-  background-color: #007bff;
-  color: white;
-  align-self: flex-end;
-  margin-left: auto;
+.user-message {
+  font-size: 1.1em;
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 5px; /* Add a small margin to separate from assistant message */
 }
 
-.bot {
-  background-color: #f1f1f1;
-  color: black;
-  align-self: flex-start;
+.assistant-prefix {
+  font-weight: bold;
+  margin-bottom: 2px; /* Reduced from 5px */
+  text-align: left;
+}
+
+.assistant-message {
+  font-size: 1em;
+  text-align: left;
+}
+
+.interaction-separator {
+  border: none;
+  border-top: 1px solid #e5e5e5;
+  margin: 10px 0; /* Reduced from 15px */
 }
 
 .chat-input-form {
   display: flex;
+  padding: 10px 0;
+  background-color: white;
+  border-top: 1px solid #e5e5e5;
 }
 
 .chat-input {
   flex-grow: 1;
   padding: 10px;
+  font-size: 1em;
   border: 1px solid #ccc;
-  border-radius: 5px 0 0 5px;
+  border-radius: 4px;
+  resize: none; /* Prevents manual resizing */
+  overflow-y: hidden; /* Hides the scrollbar */
+  min-height: 40px; /* Set a minimum height */
+  max-height: 200px; /* Set a maximum height if desired */
+  line-height: 1.5; /* Improves text readability */
 }
 
 .chat-submit {
+  align-self: flex-end; /* Aligns the button to the bottom */
   padding: 10px 20px;
+  font-size: 1em;
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 0 5px 5px 0;
+  border-radius: 4px;
+  margin-left: 10px;
   cursor: pointer;
+  height: 40px; /* Match the minimum height of the textarea */
 }
 
 .chat-submit:hover {
