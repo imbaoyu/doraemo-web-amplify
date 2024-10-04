@@ -3,18 +3,21 @@
   margin: 0;
   padding: 0;
   text-align: center;
+  height: 100%;
 }
 
 .page-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  height: 100vh;
 }
 
 .content-wrapper {
   display: flex;
   flex: 1;
   padding-top: 60px; /* This should match the banner height */
+  overflow: hidden;
 }
 
 .menu {
@@ -48,10 +51,12 @@
 .content-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px); /* Adjust based on your banner height */
+  flex: 1;
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0;
+  overflow: hidden;
+  position: relative; /* Ensure relative positioning for child elements */
 }
 
 .top-banner {
@@ -374,15 +379,17 @@
 }
 
 .chat-container {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  padding-bottom: 60px; /* Ensure space for the input box */
 }
 
 .chat-messages {
-  display: flex;
-  flex-direction: column;
-  gap: 10px; /* Reduced from 20px to bring messages closer */
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .message {
@@ -417,26 +424,29 @@
 
 .chat-input-form {
   display: flex;
-  padding: 10px 0;
+  width: 100%;
+  padding: 10px;
   background-color: white;
   border-top: 1px solid #e5e5e5;
+  position: absolute; /* Position the input box at the bottom of the container */
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .chat-input {
-  flex-grow: 1;
+  flex: 1;
   padding: 10px;
   font-size: 1em;
   border: 1px solid #ccc;
   border-radius: 4px;
-  resize: none; /* Prevents manual resizing */
-  overflow-y: hidden; /* Hides the scrollbar */
-  min-height: 40px; /* Set a minimum height */
-  max-height: 200px; /* Set a maximum height if desired */
-  line-height: 1.5; /* Improves text readability */
+  resize: none;
+  min-height: 40px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .chat-submit {
-  align-self: flex-end; /* Aligns the button to the bottom */
   padding: 10px 20px;
   font-size: 1em;
   background-color: #007bff;
@@ -445,9 +455,8 @@
   border-radius: 4px;
   margin-left: 10px;
   cursor: pointer;
-  height: 40px; /* Match the minimum height of the textarea */
+  align-self: flex-end;
 }
-
 .chat-submit:hover {
   background-color: #0056b3;
 }
