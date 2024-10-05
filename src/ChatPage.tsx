@@ -8,6 +8,11 @@ import { generateClient } from 'aws-amplify/api';
 import type { Schema } from "../amplify/data/resource";
 const client = generateClient<Schema>();
 
+import DOMPurify from 'dompurify';
+import { marked } from 'marked';
+
+marked.setOptions({ async: false });
+
 interface Message {
   text: string;
   isUser: boolean;
@@ -48,6 +53,13 @@ function ChatPage() {
     adjustTextareaHeight();
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -70,6 +82,11 @@ function ChatPage() {
               <div className="chat-container">
                 <div className="chat-messages">
                   {messages.reduce((acc, message, index, array) => {
+                    // Convert markdown to HTML synchronously
+                    const markdownText = marked.parse(message.text);
+                    // Sanitize the HTML
+                    const sanitizedText = DOMPurify.sanitize(markdownText.toString());
+
                     acc.push(
                       <div key={index} className={`message ${message.isUser ? 'user' : 'assistant'}`}>
                         {message.isUser ? (
@@ -77,7 +94,10 @@ function ChatPage() {
                         ) : (
                           <>
                             <p className="assistant-prefix">Answer:</p>
-                            <p className="assistant-message">{message.text}</p>
+                            <p
+                              className="assistant-message"
+                              dangerouslySetInnerHTML={{ __html: sanitizedText }}
+                            />
                           </>
                         )}
                       </div>
@@ -98,6 +118,7 @@ function ChatPage() {
                   ref={textareaRef}
                   value={inputMessage}
                   onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
                   placeholder="Type a message..."
                   className="chat-input"
                   rows={1}
