@@ -36,9 +36,8 @@ export function request(ctx) {
 export function response(ctx) {
   console.log('Response result:', ctx.result);
   // Parse the response body
-  const responseBody = ctx.result.body;
-  return responseBody;
+  const responseBody = JSON.parse(ctx.result.body);
   // Extract the generated text from the response
-  //const generatedText = responseBody.output.message.content[0].text;
-  //return generatedText.trim();
+  const generatedText = responseBody.output.message.content[0].text;
+  return generatedText.trim();
 }
