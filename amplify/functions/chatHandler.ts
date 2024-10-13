@@ -81,10 +81,17 @@ export const handler : Handler = async (event, context: Context) => {
         }
         
         const response = await chatWithBedrock(prompt);
-        
+        if (!response) {
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: 'Failed to get response' })
+            };
+        }
+        const message = JSON.parse(response)?.body?.response;
+
         return {
             statusCode: 200,
-            body: JSON.stringify({ response })
+            body: JSON.stringify({ message })
         };
     } catch (e) {
         console.error(e);
