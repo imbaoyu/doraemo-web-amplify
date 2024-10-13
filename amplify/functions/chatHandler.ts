@@ -62,16 +62,16 @@ export const handler : Handler = async (event, context: Context) => {
     console.log("Within context:", JSON.stringify(context));
 
     try {
-        let body: any;
+        let args: any;
 
         // Check if the event body is a string or already parsed
-        if (typeof event.body === 'string') {
-            body = JSON.parse(event.body);
+        if (typeof event.arguments === 'string') {
+            args = JSON.parse(event.arguments);
         } else {
-            body = event.body;
+            args = event.arguments;
         }
 
-        const prompt = body?.prompt;
+        const prompt = args?.prompt;
 
         if (!prompt) {
             return {
