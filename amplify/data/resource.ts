@@ -1,7 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { chatWithBedrock } from "../functions/resource";
-import { Function } from "aws-cdk-lib/aws-lambda";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -37,7 +35,7 @@ const schema = a.schema({
       })
     ),
   
-  sendChat: a
+  sendConverseCommand: a
     .query()
     .arguments({
       message: a.string().required(),
