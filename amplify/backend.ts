@@ -4,11 +4,13 @@ import { data } from './data/resource';
 import { feedStorage } from "./storage/resource";
 import { Stack } from 'aws-cdk-lib';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { chatWithBedrock } from './functions/resource';
 
 const backend = defineBackend({
   auth,
   data,
   feedStorage,
+  chatWithBedrock,
 });
 
 const dataStack = Stack.of(backend.data)
@@ -42,6 +44,7 @@ backend.feedStorage.resources.bucket.grantReadWrite(
 
 // Add Bedrock HTTP data source
 // Bedrock endpoints: https://docs.aws.amazon.com/general/latest/gr/bedrock.html
+// TODO: remove the bedrock data source once we have the function
 const bedrockDataSource = backend.data.addHttpDataSource(
   "BedrockDataSource",
   `https://bedrock-runtime.${dataStack.region}.amazonaws.com`,
@@ -58,5 +61,20 @@ bedrockDataSource.grantPrincipal.addToPrincipalPolicy(
   new PolicyStatement({
     actions: ["bedrock:InvokeModel"],
     resources: ["*"], // You might want to restrict this to specific model ARNs
+  })
+);
+
+const chatWithBedrockLambda = backend.chatWithBedrock.resources.lambda;
+chatWithBedrockLambda.addToRolePolicy(
+  new PolicyStatement({
+    actions: [
+      'bedrock:InvokeModel',
+      'bedrock:InvokeModelWithResponseStream',
+      'bedrock:RetrieveAndGenerate',
+      'bedrock:InvokeAgent',
+      'bedrock:InvokeBuilder',
+      'bedrock:InvokeFlow'
+    ],
+    resources: ['*']
   })
 );
