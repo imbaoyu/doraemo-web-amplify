@@ -38,7 +38,7 @@ function ChatPage() {
     setInputMessage('');
 
     try {
-      const { data } = await client.queries.sendConverseCommand({message: inputMessage});
+      const { data } = await client.queries.sendConverseCommand({prompt: inputMessage});
       const responseText = data ?? "No response received";
       // Extract the message text from the response
       setMessages(prevMessages => [...prevMessages, { text: responseText, isUser: false }]);

@@ -38,7 +38,7 @@ const schema = a.schema({
   sendConverseCommand: a
     .query()
     .arguments({
-      message: a.string().required(),
+      prompt: a.string().required(),
     })
     .returns(a.string())
     .authorization((allow) => [allow.authenticated()])
