@@ -42,7 +42,9 @@ const schema = a.schema({
     })
     .returns(a.string())
     .authorization((allow) => [allow.authenticated()])
-    .handler(a.handler.function(chatWithBedrock))
+    .handler(
+      a.handler.function(chatWithBedrock)
+    )
 });
 
 export type Schema = ClientSchema<typeof schema>;

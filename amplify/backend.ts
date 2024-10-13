@@ -65,6 +65,7 @@ bedrockDataSource.grantPrincipal.addToPrincipalPolicy(
 );
 
 const chatWithBedrockLambda = backend.chatWithBedrock.resources.lambda;
+
 chatWithBedrockLambda.addToRolePolicy(
   new PolicyStatement({
     actions: [
@@ -78,3 +79,4 @@ chatWithBedrockLambda.addToRolePolicy(
     resources: ['*']
   })
 );
+
