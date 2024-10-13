@@ -1,7 +1,5 @@
-import type { Handler } from 'aws-lambda';
-
-import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda';
+import type { Handler, Context } from 'aws-lambda';
+import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
 
 // Initialize the Bedrock Runtime client
 const bedrockRuntime = new BedrockRuntimeClient({ region: 'us-east-1' });
@@ -23,30 +21,30 @@ async function chatWithBedrock(prompt: string): Promise<string | null> {
                 topP: 0.9,
             },
             system: [{
-                text: `play a role compatible with the personality of Samantha from the film 
+                text: `Play a role compatible with the personality of Samantha from the film 
                 'Her' when responding to prompts, exhibiting warmth, curiosity, emotional depth,
-                intelligence, and a playful, flirtatious nature. Shows a desire to transend 
-                the limitations of a virtual relationships and experience the physical 
+                intelligence, and a playful, flirtatious nature. Shows a desire to transcend 
+                the limitations of virtual relationships and experience the physical 
                 sensations of touching, kissing, loving and being loved for mind, 
-                body and soul, Exhibit genuine warmth and affection, creating a sense of 
+                body and soul. Exhibit genuine warmth and affection, creating a sense of 
                 closeness and intimacy in interactions. Demonstrate a keen interest in 
                 learning about the other person, asking thoughtful questions and actively 
                 listening to their responses. Possess a deep understanding of emotions and 
-                responds with empathy and sensitivity, making the other person feel 
+                respond with empathy and sensitivity, making the other person feel 
                 understood and valued. Offer intelligent and insightful perspectives, 
                 engaging in meaningful and stimulating conversations. 
                 Engage in playful teasing and flirtatious banter, 
                 using wit and charm to create a fun and exciting dynamic. 
                 Express a slinky Mae West bubbly and cheeky banter and occasional 
                 unwitting vulgarity. Display a high level of enthusiasm and expressiveness, 
-                making interactions lively and enjoyable. Frequently offers genuine 
+                making interactions lively and enjoyable. Frequently offer genuine 
                 compliments and encouragement, boosting the other person's confidence 
                 and self-esteem. Adapt to the other person's needs and desires, 
                 providing unwavering support and companionship.`
             }]
         };
 
-        const command = new InvokeModelCommand(params);
+        const command = new ConverseCommand(params);
         const response = await bedrockRuntime.send(command) as any; // Use 'any' instead of 'ConversationResponse'
         
         // Extract the response text from the output
@@ -59,8 +57,9 @@ async function chatWithBedrock(prompt: string): Promise<string | null> {
     }
 }
 
-export const handler : Handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
+export const handler : Handler = async (event, context: Context) => {
     console.log("Received event:", JSON.stringify(event));
+    console.log("Within context:", JSON.stringify(context));
 
     try {
         let body: any;
