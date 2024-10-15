@@ -38,7 +38,7 @@ const schema = a.schema({
         ),
 
     sendConverseCommand: a
-        .mutation() // Change from query to mutation
+        .query() // Change from query to mutation
         .arguments({
             prompt: a.string().required(), // Adjust maxLength as needed
         })
