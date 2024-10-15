@@ -65,6 +65,7 @@ async function createHistoryRecord(prompt:string, response:string):Promise<boole
         } as any);
 
         const latestThreadId = latestThreads.length > 0 ? latestThreads[0].thread : 1;
+        console.log("Current chat thread id:", latestThreadId);
 
         // Get the largest idx value within the latest thread
         const { data: latestIdxEntries } = await client.models.ChatHistory.list({
@@ -74,6 +75,7 @@ async function createHistoryRecord(prompt:string, response:string):Promise<boole
         } as any);
 
         const newIdx = latestIdxEntries.length > 0 ? latestIdxEntries[0].idx + 1 : 1;
+        console.log("Current chat record index id:", newIdx);
 
         // Create new ChatHistory entries
         const requestRecord = await client.models.ChatHistory.create({
@@ -91,9 +93,11 @@ async function createHistoryRecord(prompt:string, response:string):Promise<boole
             type: "response"
         });
         console.log("Chat history record created:", responseRecord);
+
         return true
+
     } catch(error) {
-        console.error("Failed to save chat history");
+        console.error("Failed to save chat history:", error);
         return false
     }
 }
