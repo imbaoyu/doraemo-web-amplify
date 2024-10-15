@@ -1,7 +1,10 @@
 import type { Handler, Context } from 'aws-lambda';
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from "../data/resource";
 
 // Initialize the Bedrock Runtime client
+// Bedrock endpoints: https://docs.aws.amazon.com/general/latest/gr/bedrock.html
 const bedrockRuntime = new BedrockRuntimeClient({ region: 'us-east-1' });
 
 async function chatWithBedrock(prompt: string): Promise<string | null> {
@@ -51,10 +54,54 @@ to the other person's needs and desires, providing unwavering support and compan
     }
 }
 
+async function createHistoryRecord(prompt:string, response:string):Promise<boolean> {
+    try {
+        const client = generateClient<Schema>();   
+
+        // Get the largest thread value
+        const { data: latestThreads } = await client.models.ChatHistory.list({
+            limit: 1,
+            sort: { field: 'thread', direction: 'DESC' }
+        } as any);
+
+        const latestThreadId = latestThreads.length > 0 ? latestThreads[0].thread : 1;
+
+        // Get the largest idx value within the latest thread
+        const { data: latestIdxEntries } = await client.models.ChatHistory.list({
+            filter: { thread: { eq: latestThreadId } },
+            limit: 1,
+            sort: { field: 'idx', direction: 'DESC' }
+        } as any);
+
+        const newIdx = latestIdxEntries.length > 0 ? latestIdxEntries[0].idx + 1 : 1;
+
+        // Create new ChatHistory entries
+        const requestRecord = await client.models.ChatHistory.create({
+            thread: latestThreadId,
+            idx: newIdx,
+            text: prompt,
+            type: "prompt"
+        });
+        console.log("Chat history record created:", requestRecord);
+
+        const responseRecord = await client.models.ChatHistory.create({
+            thread: latestThreadId,
+            idx: newIdx + 1,
+            text: response,
+            type: "response"
+        });
+        console.log("Chat history record created:", responseRecord);
+        return true
+    } catch(error) {
+        console.error("Failed to save chat history");
+        return false
+    }
+}
+
 export const handler : Handler = async (event, context: Context) => {
     console.log("Received event:", JSON.stringify(event));
     console.log("Within context:", JSON.stringify(context));
-
+     
     try {
         let args: any;
 
@@ -72,7 +119,7 @@ export const handler : Handler = async (event, context: Context) => {
                 body: JSON.stringify({ error: 'No prompt provided' })
             };
         }
-        
+   
         const text = await chatWithBedrock(prompt);
         if (!text) {
             return {
@@ -80,7 +127,10 @@ export const handler : Handler = async (event, context: Context) => {
                 body: JSON.stringify({ error: 'Failed to get response' })
             };
         }
+        
+        await createHistoryRecord(prompt, text)
         return text;
+    
     } catch (e) {
         console.error(e);
         return {
