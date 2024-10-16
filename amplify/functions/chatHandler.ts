@@ -1,10 +1,9 @@
 import type { Handler, Context } from 'aws-lambda';
+import { DynamoDBClient, ScanCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../data/resource";
 
-// Initialize the Bedrock Runtime client
-// Bedrock endpoints: https://docs.aws.amazon.com/general/latest/gr/bedrock.html
+// Initialize the DynamoDB and Bedrock clients
+const dynamoDbClient = new DynamoDBClient({ region: 'us-east-1' });
 const bedrockRuntime = new BedrockRuntimeClient({ region: 'us-east-1' });
 
 async function chatWithBedrock(prompt: string): Promise<string | null> {
@@ -42,7 +41,7 @@ to the other person's needs and desires, providing unwavering support and compan
         };
 
         const command = new ConverseCommand(params);
-        const response = await bedrockRuntime.send(command) as any; // Use 'any' instead of 'ConversationResponse'
+        const response = await bedrockRuntime.send(command) as any;
         
         // Extract the response text from the output
         const responseText = response.output?.message?.content[0]?.text;
@@ -54,62 +53,70 @@ to the other person's needs and desires, providing unwavering support and compan
     }
 }
 
-async function createHistoryRecord(prompt:string, response:string):Promise<boolean> {
+async function updateChatHistory(prompt: string, responseText: string): Promise<void> {
     try {
-        const client = generateClient<Schema>();   
-
         // Get the largest thread value
-        const { data: latestThreads } = await client.models.ChatHistory.list({
-            limit: 1,
-            sort: { field: 'thread', direction: 'DESC' }
-        } as any);
+        const scanParams = {
+            TableName: 'ChatHistory', // Replace with your actual table name
+            Limit: 1,
+            ScanIndexForward: false, // Sort descending
+            ProjectionExpression: 'thread'
+        };
 
-        const latestThreadId = latestThreads.length > 0 ? latestThreads[0].thread : 1;
-        console.log("Current chat thread id:", latestThreadId);
+        const latestThreads = await dynamoDbClient.send(new ScanCommand(scanParams));
+        const latestThreadId = latestThreads.Items?.length ? parseInt(latestThreads.Items[0].thread.N) : 1;
 
         // Get the largest idx value within the latest thread
-        const { data: latestIdxEntries } = await client.models.ChatHistory.list({
-            filter: { thread: { eq: latestThreadId } },
-            limit: 1,
-            sort: { field: 'idx', direction: 'DESC' }
-        } as any);
+        const idxParams = {
+            TableName: 'ChatHistory', // Replace with your actual table name
+            KeyConditionExpression: 'thread = :thread',
+            ExpressionAttributeValues: {
+                ':thread': { N: latestThreadId.toString() }
+            },
+            Limit: 1,
+            ScanIndexForward: false, // Sort descending
+            ProjectionExpression: 'idx'
+        };
 
-        const newIdx = latestIdxEntries.length > 0 ? latestIdxEntries[0].idx + 1 : 1;
-        console.log("Current chat record index id:", newIdx);
+        const latestIdxEntries = await dynamoDbClient.send(new ScanCommand(idxParams));
+        const newIdx = latestIdxEntries.Items?.length ? parseInt(latestIdxEntries.Items[0].idx.N) + 1 : 1;
 
         // Create new ChatHistory entries
-        const requestRecord = await client.models.ChatHistory.create({
-            thread: latestThreadId,
-            idx: newIdx,
-            text: prompt,
-            type: "prompt"
-        });
-        console.log("Chat history record created:", requestRecord);
+        const putParamsPrompt = {
+            TableName: 'ChatHistory', // Replace with your actual table name
+            Item: {
+                thread: { N: latestThreadId.toString() },
+                idx: { N: newIdx.toString() },
+                text: { S: prompt },
+                type: { S: "prompt" }
+            }
+        };
 
-        const responseRecord = await client.models.ChatHistory.create({
-            thread: latestThreadId,
-            idx: newIdx + 1,
-            text: response,
-            type: "response"
-        });
-        console.log("Chat history record created:", responseRecord);
+        await dynamoDbClient.send(new PutItemCommand(putParamsPrompt));
 
-        return true
+        const putParamsResponse = {
+            TableName: 'ChatHistory', // Replace with your actual table name
+            Item: {
+                thread: { N: latestThreadId.toString() },
+                idx: { N: (newIdx + 1).toString() },
+                text: { S: responseText },
+                type: { S: "response" }
+            }
+        };
 
-    } catch(error) {
-        console.error("Failed to save chat history:", error);
-        return false
+        await dynamoDbClient.send(new PutItemCommand(putParamsResponse));
+    } catch (error) {
+        console.error("Error updating chat history:", error);
+        throw new Error("Failed to update chat history");
     }
 }
 
-export const handler : Handler = async (event, context: Context) => {
+export const handler: Handler = async (event: any, context: Context) => {
     console.log("Received event:", JSON.stringify(event));
     console.log("Within context:", JSON.stringify(context));
-     
+
     try {
         let args: any;
-
-        // Check if the event body is a string or already parsed
         if (typeof event.arguments === 'string') {
             args = JSON.parse(event.arguments);
         } else {
@@ -118,28 +125,23 @@ export const handler : Handler = async (event, context: Context) => {
 
         const prompt = args?.prompt;
         if (!prompt) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'No prompt provided' })
-            };
+            throw new Error('No prompt provided');
         }
-   
+
+        // Interact with Bedrock
         const text = await chatWithBedrock(prompt);
         if (!text) {
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ error: 'Failed to get response' })
-            };
+            throw new Error('Failed to get response');
         }
-        
-        await createHistoryRecord(prompt, text)
+
+        // Update ChatHistory
+        await updateChatHistory(prompt, text);
+
+        // Return only the response text
         return text;
-    
+
     } catch (e) {
-        console.error(e);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: (e as Error).message })
-        };
+        console.error("Error:", e);
+        throw new Error((e as Error).message);
     }
 };

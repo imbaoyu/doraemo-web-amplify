@@ -58,3 +58,16 @@ chatWithBedrockLambda.addToRolePolicy(
   })
 );
 
+chatWithBedrockLambda.addToRolePolicy(
+  new PolicyStatement({
+    actions: [
+      'dynamodb:PutItem',
+      'dynamodb:GetItem',
+      'dynamodb:Query',
+      'dynamodb:Scan',
+      'dynamodb:UpdateItem',
+      'dynamodb:DeleteItem'
+    ],
+    resources: ['*'] // Replace with your actual table ARN
+  })
+);
