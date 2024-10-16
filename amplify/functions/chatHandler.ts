@@ -64,7 +64,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
         };
 
         const latestThreads = await dynamoDbClient.send(new ScanCommand(scanParams));
-        const latestThreadId = latestThreads.Items?.length ? parseInt(latestThreads.Items[0].thread.N) : 1;
+        const latestThreadId = latestThreads.Items?.length ? parseInt(latestThreads.Items[0].thread.N || '1') : 1;
 
         // Get the largest idx value within the latest thread
         const idxParams = {
@@ -79,7 +79,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
         };
 
         const latestIdxEntries = await dynamoDbClient.send(new ScanCommand(idxParams));
-        const newIdx = latestIdxEntries.Items?.length ? parseInt(latestIdxEntries.Items[0].idx.N) + 1 : 1;
+        const newIdx = latestIdxEntries.Items?.length ? parseInt(latestIdxEntries.Items[0].idx.N ?? '0') + 1 : 1;
 
         // Create new ChatHistory entries
         const putParamsPrompt = {
