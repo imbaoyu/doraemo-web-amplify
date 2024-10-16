@@ -57,8 +57,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
     try {
         // Get the largest thread value
         const scanParams = {
-            TableName: 'ChatHistory', // Replace with your actual table name
-            Limit: 1,
+            TableName: 'ChatHistory-jku623bccfdvziracnh673rzwe-NONE', //TODO: is there a way to avoid hardcoding?
             ScanIndexForward: false, // Sort descending
             ProjectionExpression: 'thread'
         };
