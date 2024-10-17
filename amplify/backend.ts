@@ -5,6 +5,7 @@ import { feedStorage } from "./storage/resource";
 import { Stack } from 'aws-cdk-lib';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { chatWithBedrock } from './functions/resource';
+import { Function } from 'aws-cdk-lib/aws-lambda'; // Ensure this import is present
 
 const backend = defineBackend({
   auth,
@@ -42,7 +43,11 @@ backend.feedStorage.resources.bucket.grantReadWrite(
   rekognitionDataSource.grantPrincipal
 );
 
-const chatWithBedrockLambda = backend.chatWithBedrock.resources.lambda;
+// Cast chatWithBedrockLambda to the correct type
+const chatWithBedrockLambda = backend.chatWithBedrock.resources.lambda as Function;
+
+// Set the environment variable for the Lambda function
+chatWithBedrockLambda.addEnvironment('CHAT_HISTORY_TABLE_NAME', 'ChatHistory-jku623bccfdvziracnh673rzwe-NONE');
 
 chatWithBedrockLambda.addToRolePolicy(
   new PolicyStatement({

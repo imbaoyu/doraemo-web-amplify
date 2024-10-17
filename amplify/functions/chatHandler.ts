@@ -6,6 +6,9 @@ import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-r
 const dynamoDbClient = new DynamoDBClient({ region: 'us-east-1' });
 const bedrockRuntime = new BedrockRuntimeClient({ region: 'us-east-1' });
 
+// Define the table name using an environment variable
+const CHAT_HISTORY_TABLE_NAME = process.env.CHAT_HISTORY_TABLE_NAME || 'chat-history-table';
+
 async function chatWithBedrock(prompt: string): Promise<string | null> {
     try {
         const params = {
@@ -57,7 +60,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
     try {
         // Get the largest thread value
         const scanParams = {
-            TableName: 'ChatHistory-jku623bccfdvziracnh673rzwe-NONE', //TODO: is there a way to avoid hardcoding?
+            TableName: CHAT_HISTORY_TABLE_NAME,
             ScanIndexForward: false, // Sort descending
             ProjectionExpression: 'thread'
         };
@@ -67,8 +70,8 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
 
         // Get the largest idx value within the latest thread
         const idxParams = {
-            TableName: 'ChatHistory', // Replace with your actual table name
-            KeyConditionExpression: 'thread = :thread',
+            TableName: CHAT_HISTORY_TABLE_NAME,
+            KeyConditionExpression: 'thread = :thread', // Ensure this is correct
             ExpressionAttributeValues: {
                 ':thread': { N: latestThreadId.toString() }
             },
@@ -82,7 +85,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
 
         // Create new ChatHistory entries
         const putParamsPrompt = {
-            TableName: 'ChatHistory', // Replace with your actual table name
+            TableName: CHAT_HISTORY_TABLE_NAME,
             Item: {
                 thread: { N: latestThreadId.toString() },
                 idx: { N: newIdx.toString() },
@@ -94,7 +97,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
         await dynamoDbClient.send(new PutItemCommand(putParamsPrompt));
 
         const putParamsResponse = {
-            TableName: 'ChatHistory', // Replace with your actual table name
+            TableName: CHAT_HISTORY_TABLE_NAME,
             Item: {
                 thread: { N: latestThreadId.toString() },
                 idx: { N: (newIdx + 1).toString() },
