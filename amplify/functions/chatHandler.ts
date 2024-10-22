@@ -1,5 +1,5 @@
 import type { Handler, Context } from 'aws-lambda';
-import { DynamoDBClient, ScanCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
 
 // Initialize the DynamoDB and Bedrock clients
@@ -59,6 +59,8 @@ to the other person's needs and desires, providing unwavering support and compan
 async function updateChatHistory(prompt: string, responseText: string): Promise<void> {
     try {
         // Get the largest thread value
+        // TODO: handle the case where the table is empty
+        // TODO: need to limit the scan to event.username?
         const scanParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             ScanIndexForward: false, // Sort descending
@@ -71,7 +73,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
         // Get the largest idx value within the latest thread
         const idxParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
-            KeyConditionExpression: 'thread = :thread', // Ensure this is correct
+            KeyConditionExpression: 'thread = :thread',
             ExpressionAttributeValues: {
                 ':thread': { N: latestThreadId.toString() }
             },
@@ -80,7 +82,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
             ProjectionExpression: 'idx'
         };
 
-        const latestIdxEntries = await dynamoDbClient.send(new ScanCommand(idxParams));
+        const latestIdxEntries = await dynamoDbClient.send(new QueryCommand(idxParams));
         const newIdx = latestIdxEntries.Items?.length ? parseInt(latestIdxEntries.Items[0].idx.N ?? '0') + 1 : 1;
 
         // Create new ChatHistory entries
