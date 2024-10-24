@@ -75,7 +75,7 @@ async function updateChatHistory(prompt: string, responseText: string): Promise<
             TableName: CHAT_HISTORY_TABLE_NAME,
             KeyConditionExpression: 'thread = :thread',
             ExpressionAttributeValues: {
-                ':thread': { N: latestThreadId.toString() }
+                ':thread': { N: latestThreadId.toString() },
             },
             Limit: 1,
             ScanIndexForward: false, // Sort descending
