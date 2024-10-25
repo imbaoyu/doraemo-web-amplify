@@ -64,7 +64,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
     try {
         const queryParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
-            IndexName: CHAT_HISTORY_GSI_NAME, // Ensure this matches your GSI name
+            IndexName: CHAT_HISTORY_GSI_NAME,
             KeyConditionExpression: 'userName = :userName',
             ExpressionAttributeValues: {
                 ':userName': { S: userName }
@@ -80,7 +80,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
         // Get the largest idx value within the latest thread for the user
         const idxParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
-            IndexName: 'UserThreadIndex', // Ensure this matches your GSI name
+            IndexName: CHAT_HISTORY_GSI_NAME,
             KeyConditionExpression: 'userName = :userName AND thread = :thread',
             ExpressionAttributeValues: {
                 ':userName': { S: userName },
