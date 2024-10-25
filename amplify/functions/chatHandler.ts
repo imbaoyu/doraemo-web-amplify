@@ -1,18 +1,22 @@
 import type { Handler, Context } from 'aws-lambda';
-import { DynamoDBClient, ScanCommand, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
-
-// Initialize the DynamoDB and Bedrock clients
-const dynamoDbClient = new DynamoDBClient({ region: 'us-east-1' });
-const bedrockRuntime = new BedrockRuntimeClient({ region: 'us-east-1' });
 
 // Define the table name using an environment variable
 const CHAT_HISTORY_TABLE_NAME = process.env.CHAT_HISTORY_TABLE_NAME || 'chat-history-table';
+const CHAT_HISTORY_GSI_NAME = 'chatHistoriesByUserAndThreadAndIdx';
+const MODEL_ID = 'meta.llama3-70b-instruct-v1:0'
+const REGION = 'us-east-1';
+
+// Initialize the DynamoDB and Bedrock clients
+const dynamoDbClient = new DynamoDBClient({ region: REGION });
+const bedrockRuntime = new BedrockRuntimeClient({ region: REGION });
+
 
 async function chatWithBedrock(prompt: string): Promise<string | null> {
     try {
         const params = {
-            modelId: 'meta.llama3-70b-instruct-v1:0',
+            modelId: MODEL_ID,
             messages: [
                 {
                     role: "user",
@@ -56,30 +60,35 @@ to the other person's needs and desires, providing unwavering support and compan
     }
 }
 
-async function updateChatHistory(prompt: string, responseText: string): Promise<void> {
+async function updateChatHistory(prompt: string, responseText: string, user: string): Promise<void> {
     try {
-        // Get the largest thread value
-        // TODO: handle the case where the table is empty
-        // TODO: need to limit the scan to event.username?
-        const scanParams = {
+        const queryParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
-            ScanIndexForward: false, // Sort descending
-            ProjectionExpression: 'thread'
+            IndexName: CHAT_HISTORY_GSI_NAME, // Ensure this matches your GSI name
+            KeyConditionExpression: 'user = :user',
+            ExpressionAttributeValues: {
+                ':user': { S: user } // Assuming 'user' is a string variable
+            },
+            ProjectionExpression: 'thread',
+            ScanIndexForward: false, // Sort descending to get the largest thread first
+            Limit: 1 // Only need the largest thread
         };
 
-        const latestThreads = await dynamoDbClient.send(new ScanCommand(scanParams));
+        const latestThreads = await dynamoDbClient.send(new QueryCommand(queryParams));
         const latestThreadId = latestThreads.Items?.length ? parseInt(latestThreads.Items[0].thread.N || '1') : 1;
 
-        // Get the largest idx value within the latest thread
+        // Get the largest idx value within the latest thread for the user
         const idxParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
-            KeyConditionExpression: 'thread = :thread',
+            IndexName: 'UserThreadIndex', // Ensure this matches your GSI name
+            KeyConditionExpression: 'user = :user AND thread = :thread',
             ExpressionAttributeValues: {
-                ':thread': { N: latestThreadId.toString() },
+                ':user': { S: user }, // Assuming 'user' is a string variable
+                ':thread': { N: latestThreadId.toString() }
             },
-            Limit: 1,
-            ScanIndexForward: false, // Sort descending
-            ProjectionExpression: 'idx'
+            ProjectionExpression: 'idx',
+            ScanIndexForward: false, // Sort descending to get the largest idx first
+            Limit: 1 // Only need the largest idx
         };
 
         const latestIdxEntries = await dynamoDbClient.send(new QueryCommand(idxParams));
@@ -139,7 +148,7 @@ export const handler: Handler = async (event: any, context: Context) => {
         }
 
         // Update ChatHistory
-        await updateChatHistory(prompt, text);
+        await updateChatHistory(prompt, text, event.identity?.username ?? 'anon');
 
         // Return only the response text
         return text;
