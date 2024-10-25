@@ -16,14 +16,14 @@ const schema = a.schema({
     }).authorization((allow) => [allow.owner()]),
 
     ChatHistory: a.model({
-        user: a.string().required(),
+        userName: a.string().required(),
         thread: a.integer().default(1).required(),
         idx: a.integer().default(1).required(),
         text: a.string().default(""),
         type: a.enum(['prompt', 'response', 'summary'])
     })
     .secondaryIndexes((index) => [
-        index("user").sortKeys(["thread", "idx"])
+        index("userName").sortKeys(["thread", "idx"])
     ])
     .authorization((allow) => [allow.owner()]),
     // Customized Queries and Mutations

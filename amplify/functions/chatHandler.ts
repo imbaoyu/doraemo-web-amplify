@@ -60,14 +60,14 @@ to the other person's needs and desires, providing unwavering support and compan
     }
 }
 
-async function updateChatHistory(prompt: string, responseText: string, user: string): Promise<void> {
+async function updateChatHistory(prompt: string, responseText: string, userName: string): Promise<void> {
     try {
         const queryParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             IndexName: CHAT_HISTORY_GSI_NAME, // Ensure this matches your GSI name
-            KeyConditionExpression: 'user = :user',
+            KeyConditionExpression: 'userName = :userName',
             ExpressionAttributeValues: {
-                ':user': { S: user } // Assuming 'user' is a string variable
+                ':userName': { S: userName }
             },
             ProjectionExpression: 'thread',
             ScanIndexForward: false, // Sort descending to get the largest thread first
@@ -81,9 +81,9 @@ async function updateChatHistory(prompt: string, responseText: string, user: str
         const idxParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             IndexName: 'UserThreadIndex', // Ensure this matches your GSI name
-            KeyConditionExpression: 'user = :user AND thread = :thread',
+            KeyConditionExpression: 'userName = :userName AND thread = :thread',
             ExpressionAttributeValues: {
-                ':user': { S: user }, // Assuming 'user' is a string variable
+                ':userName': { S: userName },
                 ':thread': { N: latestThreadId.toString() }
             },
             ProjectionExpression: 'idx',
