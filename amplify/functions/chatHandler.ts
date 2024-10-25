@@ -1,6 +1,7 @@
 import type { Handler, Context } from 'aws-lambda';
 import { DynamoDBClient, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
+import { v4 as uuidv4 } from 'uuid';
 
 // Define the table name using an environment variable
 const CHAT_HISTORY_TABLE_NAME = process.env.CHAT_HISTORY_TABLE_NAME || 'chat-history-table';
@@ -98,6 +99,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
         const putParamsPrompt = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             Item: {
+                id: { S: uuidv4() }, // Add a randomly generated ID
                 userName: { S: userName },
                 thread: { N: latestThreadId.toString() },
                 idx: { N: newIdx.toString() },
@@ -111,6 +113,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
         const putParamsResponse = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             Item: {
+                id: { S: uuidv4() },
                 userName: { S: userName },
                 thread: { N: latestThreadId.toString() },
                 idx: { N: (newIdx + 1).toString() },
