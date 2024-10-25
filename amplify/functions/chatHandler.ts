@@ -98,6 +98,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
         const putParamsPrompt = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             Item: {
+                userName: userName,
                 thread: { N: latestThreadId.toString() },
                 idx: { N: newIdx.toString() },
                 text: { S: prompt },
@@ -110,6 +111,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
         const putParamsResponse = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             Item: {
+                userName: userName,
                 thread: { N: latestThreadId.toString() },
                 idx: { N: (newIdx + 1).toString() },
                 text: { S: responseText },

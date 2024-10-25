@@ -23,7 +23,7 @@ const schema = a.schema({
         type: a.enum(['prompt', 'response', 'summary'])
     })
     .secondaryIndexes((index) => [
-        index("userName").sortKeys(["thread", "idx"])
+        index("userName").sortKeys(["thread"])
     ])
     .authorization((allow) => [allow.owner()]),
     // Customized Queries and Mutations
