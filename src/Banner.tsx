@@ -55,7 +55,7 @@ function Banner({ onSignOut }: BannerProps) {
 
   return (
     <div className="top-banner">
-      <h1>My Social Hub</h1>
+      <h1>Playground</h1>
       <div className="user-controls">
         {isAuthenticated ? (
           <>

@@ -8,27 +8,27 @@ const CHAT_HISTORY_TABLE_NAME = process.env.CHAT_HISTORY_TABLE_NAME || 'chat-his
 const CHAT_HISTORY_GSI_NAME = 'chatHistoriesByUserNameAndThread';
 const MODEL_ID = 'meta.llama3-70b-instruct-v1:0'
 const REGION = 'us-east-1';
+// const CONTEXT_WINDOW_SIZE = 5;
 
 // Initialize the DynamoDB and Bedrock clients
 const dynamoDbClient = new DynamoDBClient({ region: REGION });
 const bedrockRuntime = new BedrockRuntimeClient({ region: REGION });
 
-
 async function chatWithBedrock(prompt: string): Promise<string | null> {
     try {
+        const aggregatedMessage = [{
+            role: "user",
+            content: [{ text: `${prompt}\n` }]
+        }]
+
         const params = {
             modelId: MODEL_ID,
-            messages: [
-                {
-                    role: "user",
-                    content: [{ text: `${prompt}\n` }]
-                }
-            ] as any[],
+            messages: aggregatedMessage,
             inferenceConfig: {
                 maxTokens: 500,
                 stopSequences: ["Human:", "Assistant:", "user:"],
-                temperature: 0.7,
-                topP: 0.9,
+                temperature: 1,
+                topP: 0.8,
             },
             system: [{
                 text: `\
@@ -61,23 +61,25 @@ to the other person's needs and desires, providing unwavering support and compan
     }
 }
 
-async function updateChatHistory(prompt: string, responseText: string, userName: string): Promise<void> {
+async function getLatestThreadId(userName: string): Promise<number> {
+    const queryParams = {
+        TableName: CHAT_HISTORY_TABLE_NAME,
+        IndexName: CHAT_HISTORY_GSI_NAME,
+        KeyConditionExpression: 'userName = :userName',
+        ExpressionAttributeValues: {
+            ':userName': { S: userName }
+        },
+        ProjectionExpression: 'thread',
+        ScanIndexForward: false, // Sort descending to get the largest thread first
+        Limit: 1 // Only need the largest thread
+    };
+
+    const latestThreads = await dynamoDbClient.send(new QueryCommand(queryParams));
+    return latestThreads.Items?.length ? parseInt(latestThreads.Items[0].thread.N || '1') : 1;
+}
+
+async function updateChatHistory(prompt: string, responseText: string, userName: string, threadId: number): Promise<void> {
     try {
-        const queryParams = {
-            TableName: CHAT_HISTORY_TABLE_NAME,
-            IndexName: CHAT_HISTORY_GSI_NAME,
-            KeyConditionExpression: 'userName = :userName',
-            ExpressionAttributeValues: {
-                ':userName': { S: userName }
-            },
-            ProjectionExpression: 'thread',
-            ScanIndexForward: false, // Sort descending to get the largest thread first
-            Limit: 1 // Only need the largest thread
-        };
-
-        const latestThreads = await dynamoDbClient.send(new QueryCommand(queryParams));
-        const latestThreadId = latestThreads.Items?.length ? parseInt(latestThreads.Items[0].thread.N || '1') : 1;
-
         // Get the largest idx value within the latest thread for the user
         const idxParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
@@ -85,7 +87,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
             KeyConditionExpression: 'userName = :userName AND thread = :thread',
             ExpressionAttributeValues: {
                 ':userName': { S: userName },
-                ':thread': { N: latestThreadId.toString() }
+                ':thread': { N: threadId.toString() }
             },
             ProjectionExpression: 'idx',
             ScanIndexForward: false, // Sort descending to get the largest idx first
@@ -101,7 +103,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
             Item: {
                 id: { S: uuidv4() }, // Add a randomly generated ID
                 userName: { S: userName },
-                thread: { N: latestThreadId.toString() },
+                thread: { N: threadId.toString() },
                 idx: { N: newIdx.toString() },
                 text: { S: prompt },
                 type: { S: "prompt" }
@@ -115,7 +117,7 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
             Item: {
                 id: { S: uuidv4() },
                 userName: { S: userName },
-                thread: { N: latestThreadId.toString() },
+                thread: { N: threadId.toString() },
                 idx: { N: (newIdx + 1).toString() },
                 text: { S: responseText },
                 type: { S: "response" }
@@ -140,11 +142,13 @@ export const handler: Handler = async (event: any, context: Context) => {
         } else {
             args = event.arguments;
         }
-
+        const userName = event.identity?.username ?? 'anon';
         const prompt = args?.prompt;
         if (!prompt) {
             throw new Error('No prompt provided');
         }
+
+        // Add recent conversation as context
 
         // Interact with Bedrock
         const text = await chatWithBedrock(prompt);
@@ -152,8 +156,9 @@ export const handler: Handler = async (event: any, context: Context) => {
             throw new Error('Failed to get response');
         }
 
+        const latestThreadId = await getLatestThreadId(userName);
         // Update ChatHistory
-        await updateChatHistory(prompt, text, event.identity?.username ?? 'anon');
+        await updateChatHistory(prompt, text, userName, latestThreadId);
 
         // Return only the response text
         return text;
