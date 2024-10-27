@@ -127,7 +127,7 @@ export const handler: Handler = async (event: any, context: Context) => {
         await updateChatHistory(userName, promptText, responseText, true);
 
         // Return only the response text
-        return text;
+        return responseText;
 
     } catch (e) {
         console.error("Error:", e);
