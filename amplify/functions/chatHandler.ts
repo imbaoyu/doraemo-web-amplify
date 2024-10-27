@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Define the table name using an environment variable
 const CHAT_HISTORY_TABLE_NAME = process.env.CHAT_HISTORY_TABLE_NAME || 'chat-history-table';
-const CHAT_HISTORY_GSI_NAME = 'chatHistoriesByUserNameAndThread';
+const CHAT_HISTORY_GSI_NAME = 'chatHistoriesByThreadAndIdx';
 const MODEL_ID = 'meta.llama3-70b-instruct-v1:0'
 const REGION = 'us-east-1';
 // const CONTEXT_WINDOW_SIZE = 5;
@@ -19,11 +19,11 @@ async function chatWithBedrock(prompt: string): Promise<string | null> {
         const aggregatedMessage = [{
             role: "user",
             content: [{ text: `${prompt}\n` }]
-        }]
+        }];
 
         const params = {
             modelId: MODEL_ID,
-            messages: aggregatedMessage,
+            messages: aggregatedMessage as any[],
             inferenceConfig: {
                 maxTokens: 500,
                 stopSequences: ["Human:", "Assistant:", "user:"],
@@ -61,33 +61,14 @@ to the other person's needs and desires, providing unwavering support and compan
     }
 }
 
-async function getLatestThreadId(userName: string): Promise<number> {
-    const queryParams = {
-        TableName: CHAT_HISTORY_TABLE_NAME,
-        IndexName: CHAT_HISTORY_GSI_NAME,
-        KeyConditionExpression: 'userName = :userName',
-        ExpressionAttributeValues: {
-            ':userName': { S: userName }
-        },
-        ProjectionExpression: 'thread',
-        ScanIndexForward: false, // Sort descending to get the largest thread first
-        Limit: 1 // Only need the largest thread
-    };
-
-    const latestThreads = await dynamoDbClient.send(new QueryCommand(queryParams));
-    return latestThreads.Items?.length ? parseInt(latestThreads.Items[0].thread.N || '1') : 1;
-}
-
-async function updateChatHistory(prompt: string, responseText: string, userName: string, threadId: number): Promise<void> {
+async function updateChatHistory(userName: string, promptText: string, responseText: string, isNewThread: boolean): Promise<void> {
     try {
-        // Get the largest idx value within the latest thread for the user
+        // Get the largest idx value of the user
         const idxParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
-            IndexName: CHAT_HISTORY_GSI_NAME,
-            KeyConditionExpression: 'userName = :userName AND thread = :thread',
+            KeyConditionExpression: 'userName = :userName',
             ExpressionAttributeValues: {
                 ':userName': { S: userName },
-                ':thread': { N: threadId.toString() }
             },
             ProjectionExpression: 'idx',
             ScanIndexForward: false, // Sort descending to get the largest idx first
@@ -96,35 +77,21 @@ async function updateChatHistory(prompt: string, responseText: string, userName:
 
         const latestIdxEntries = await dynamoDbClient.send(new QueryCommand(idxParams));
         const newIdx = latestIdxEntries.Items?.length ? parseInt(latestIdxEntries.Items[0].idx.N ?? '0') + 1 : 1;
+        const threadId = isNewThread ? uuidv4() : 'oldId';
 
         // Create new ChatHistory entries
         const putParamsPrompt = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             Item: {
-                id: { S: uuidv4() }, // Add a randomly generated ID
+                //id: { S: uuidv4() }, // Add a randomly generated ID
                 userName: { S: userName },
-                thread: { N: threadId.toString() },
                 idx: { N: newIdx.toString() },
-                text: { S: prompt },
-                type: { S: "prompt" }
-            }
-        };
-
-        await dynamoDbClient.send(new PutItemCommand(putParamsPrompt));
-
-        const putParamsResponse = {
-            TableName: CHAT_HISTORY_TABLE_NAME,
-            Item: {
-                id: { S: uuidv4() },
-                userName: { S: userName },
+                prompt: { S: promptText },
+                response: { S: responseText },
                 thread: { N: threadId.toString() },
-                idx: { N: (newIdx + 1).toString() },
-                text: { S: responseText },
-                type: { S: "response" }
             }
         };
-
-        await dynamoDbClient.send(new PutItemCommand(putParamsResponse));
+        await dynamoDbClient.send(new PutItemCommand(putParamsPrompt));
     } catch (error) {
         console.error("Error updating chat history:", error);
         throw new Error("Failed to update chat history");
@@ -143,22 +110,21 @@ export const handler: Handler = async (event: any, context: Context) => {
             args = event.arguments;
         }
         const userName = event.identity?.username ?? 'anon';
-        const prompt = args?.prompt;
-        if (!prompt) {
+        const promptText = args?.prompt;
+        if (!promptText) {
             throw new Error('No prompt provided');
         }
 
         // Add recent conversation as context
 
         // Interact with Bedrock
-        const text = await chatWithBedrock(prompt);
-        if (!text) {
+        const responseText = await chatWithBedrock(promptText);
+        if (!responseText) {
             throw new Error('Failed to get response');
         }
 
-        const latestThreadId = await getLatestThreadId(userName);
         // Update ChatHistory
-        await updateChatHistory(prompt, text, userName, latestThreadId);
+        await updateChatHistory(userName, promptText, responseText, true);
 
         // Return only the response text
         return text;

@@ -17,16 +17,16 @@ const schema = a.schema({
 
     ChatHistory: a.model({
         userName: a.string().required(),
-        thread: a.integer().default(1).required(),
         idx: a.integer().default(1).required(),
-        text: a.string().default(""),
-        type: a.enum(['prompt', 'response', 'summary'])
+        prompt: a.string().default(""),
+        response: a.string().default(""),
+        thread: a.string().required(),
     })
-    .secondaryIndexes((index) => [
-        index("userName").sortKeys(["thread"])
-    ])
+    .identifier(["userName", "idx"])
+    .secondaryIndexes((index) => [index("thread").sortKeys(["idx"])])
     .authorization((allow) => [allow.owner()]),
-    // Customized Queries and Mutations
+
+    // Custom Queries and Mutations
     identifyObject: a
         .query()
         .arguments({
@@ -42,9 +42,9 @@ const schema = a.schema({
         ),
 
     sendConverseCommand: a
-        .query() // Change from query to mutation
+        .query()
         .arguments({
-            prompt: a.string().required(), // Adjust maxLength as needed
+            prompt: a.string().required(),
         })
         .returns(a.string())
         .authorization((allow) => [allow.authenticated()])
