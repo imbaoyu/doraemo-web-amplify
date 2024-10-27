@@ -88,7 +88,7 @@ async function updateChatHistory(userName: string, promptText: string, responseT
                 idx: { N: newIdx.toString() },
                 prompt: { S: promptText },
                 response: { S: responseText },
-                thread: { N: threadId.toString() },
+                thread: { S: threadId },
             }
         };
         await dynamoDbClient.send(new PutItemCommand(putParamsPrompt));
