@@ -8,22 +8,26 @@ const CHAT_HISTORY_TABLE_NAME = process.env.CHAT_HISTORY_TABLE_NAME || 'chat-his
 const CHAT_HISTORY_GSI_NAME = 'chatHistoriesByThreadAndIdx';
 const MODEL_ID = 'meta.llama3-70b-instruct-v1:0'
 const REGION = 'us-east-1';
-// const CONTEXT_WINDOW_SIZE = 5;
+const SLIDING_WINDOW_SIZE = 10;
 
 // Initialize the DynamoDB and Bedrock clients
 const dynamoDbClient = new DynamoDBClient({ region: REGION });
 const bedrockRuntime = new BedrockRuntimeClient({ region: REGION });
 
-async function chatWithBedrock(prompt: string): Promise<string | null> {
-    try {
-        const aggregatedMessage = [{
-            role: "user",
-            content: [{ text: `${prompt}\n` }]
-        }];
+type MessageContent = {
+    text: string;
+};
 
+type Message = {
+    role: 'user' | 'assistant';
+    content: MessageContent[];
+};
+
+async function chatWithBedrock(aggregatedMessage: Message[]): Promise<string | null> {
+    try {
         const params = {
             modelId: MODEL_ID,
-            messages: aggregatedMessage as any[],
+            messages: aggregatedMessage,
             inferenceConfig: {
                 maxTokens: 500,
                 stopSequences: ["Human:", "Assistant:", "user:"],
@@ -61,9 +65,10 @@ to the other person's needs and desires, providing unwavering support and compan
     }
 }
 
-async function updateChatHistory(userName: string, promptText: string, responseText: string, isNewThread: boolean): Promise<void> {
+
+
+async function getLatestIdxForUser(userName: string): Promise<number> {
     try {
-        // Get the largest idx value of the user
         const idxParams = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             KeyConditionExpression: 'userName = :userName',
@@ -76,18 +81,31 @@ async function updateChatHistory(userName: string, promptText: string, responseT
         };
 
         const latestIdxEntries = await dynamoDbClient.send(new QueryCommand(idxParams));
-        const newIdx = latestIdxEntries.Items?.length ? parseInt(latestIdxEntries.Items[0].idx.N ?? '0') + 1 : 1;
+        return latestIdxEntries.Items?.length ? parseInt(latestIdxEntries.Items[0].idx.N ?? '0') + 1 : 1;
+    } catch (error) {
+        console.error("Error retrieving latest idx:", error);
+        throw new Error("Failed to retrieve latest idx");
+    }
+}
+
+async function updateChatHistory(userName: string, promptText: string, responseText: string, isNewThread: boolean): Promise<void> {
+    try {
+        // Clean up the prompt and response text
+        const cleanedPromptText = promptText.replace(/\s+/g, ' ').trim();
+        const cleanedResponseText = responseText.replace(/\s+/g, ' ').trim();
+
+        // Get the largest idx value of the user
+        const newIdx = await getLatestIdxForUser(userName);
         const threadId = isNewThread ? uuidv4() : 'oldId';
 
         // Create new ChatHistory entries
         const putParamsPrompt = {
             TableName: CHAT_HISTORY_TABLE_NAME,
             Item: {
-                //id: { S: uuidv4() }, // Add a randomly generated ID
                 userName: { S: userName },
                 idx: { N: newIdx.toString() },
-                prompt: { S: promptText },
-                response: { S: responseText },
+                prompt: { S: cleanedPromptText },
+                response: { S: cleanedResponseText },
                 thread: { S: threadId },
             }
         };
@@ -97,6 +115,7 @@ async function updateChatHistory(userName: string, promptText: string, responseT
         throw new Error("Failed to update chat history");
     }
 }
+
 
 export const handler: Handler = async (event: any, context: Context) => {
     console.log("Received event:", JSON.stringify(event));
@@ -116,6 +135,14 @@ export const handler: Handler = async (event: any, context: Context) => {
         }
 
         // Add recent conversation as context
+        const chatHistory = await getLatestChatHistoryForUser(userName, SLIDING_WINDOW_SIZE);
+        const aggregatedMessage = chatHistory.flatMap(record => [
+            { role: "user", content: [{ text: record.prompt.S }] },
+            { role: "assistant", content: [{ text: record.response.S }] }
+        ]);
+
+        // Add the current prompt to the aggregated message
+        aggregatedMessage.push({ role: "user", content: [{ text: `${promptText}\n` }] });
 
         // Interact with Bedrock
         const responseText = await chatWithBedrock(promptText);
@@ -134,3 +161,24 @@ export const handler: Handler = async (event: any, context: Context) => {
         throw new Error((e as Error).message);
     }
 };
+
+
+async function getLatestChatHistoryForUser(userName: string, amount: number): Promise<any[]> {
+    try {
+        const params = {
+            TableName: CHAT_HISTORY_TABLE_NAME,
+            KeyConditionExpression: 'userName = :userName',
+            ExpressionAttributeValues: {
+                ':userName': { S: userName },
+            },
+            ScanIndexForward: false, // Sort descending to get the latest records first
+            Limit: amount // Limit to the latest 10 records
+        };
+
+        const result = await dynamoDbClient.send(new QueryCommand(params));
+        return result.Items || [];
+    } catch (error) {
+        console.error("Error retrieving chat history:", error);
+        throw new Error("Failed to retrieve chat history");
+    }
+}
