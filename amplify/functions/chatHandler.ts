@@ -136,16 +136,16 @@ export const handler: Handler = async (event: any, context: Context) => {
 
         // Add recent conversation as context
         const chatHistory = await getLatestChatHistoryForUser(userName, SLIDING_WINDOW_SIZE);
-        const aggregatedMessage = chatHistory.flatMap(record => [
-            { role: "user", content: [{ text: record.prompt.S }] },
-            { role: "assistant", content: [{ text: record.response.S }] }
+        const aggregatedMessage: Message[] = chatHistory.flatMap(record => [
+            { role: "user" as const, content: [{ text: record.prompt.S }] },
+            { role: "assistant" as const, content: [{ text: record.response.S }] }
         ]);
 
         // Add the current prompt to the aggregated message
-        aggregatedMessage.push({ role: "user", content: [{ text: `${promptText}\n` }] });
+        aggregatedMessage.push({ role: "user" as const, content: [{ text: `${promptText}\n` }] });
 
         // Interact with Bedrock
-        const responseText = await chatWithBedrock(promptText);
+        const responseText = await chatWithBedrock(aggregatedMessage);
         if (!responseText) {
             throw new Error('Failed to get response');
         }
