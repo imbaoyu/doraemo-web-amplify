@@ -30,8 +30,8 @@ async function chatWithBedrock(aggregatedMessage: Message[]): Promise<string | n
             messages: aggregatedMessage,
             inferenceConfig: {
                 maxTokens: 500,
-                stopSequences: ["Human:", "Assistant:", "user:"],
-                temperature: 1,
+                stopSequences: ["human:", "assistant:", "user:"],
+                temperature: 2,
                 topP: 0.8,
             },
             system: [{
