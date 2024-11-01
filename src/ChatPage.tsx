@@ -114,16 +114,19 @@ function ChatPage() {
                 </div>
               </div>
               <form onSubmit={handleSubmit} className="chat-input-form">
-                <textarea
-                  ref={textareaRef}
-                  value={inputMessage}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type a message..."
-                  className="chat-input"
-                  rows={1}
-                />
-                <button type="submit" className="chat-submit">Send</button>
+                <div>
+                  <textarea
+                    ref={textareaRef}
+                    value={inputMessage}
+                    onChange={ handleInputChange }
+                    onKeyDown={ handleKeyDown }
+                    placeholder="Type your message..."
+                    className="chat-input"
+                  />
+                  <button type="submit" className="chat-submit">
+                    Send
+                  </button>
+                </div>
               </form>
             </main>
           </div>

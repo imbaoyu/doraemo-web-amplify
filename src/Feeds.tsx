@@ -58,7 +58,6 @@ function Feeds() {
             setIsAuthenticated(false);
         }
     }
-
     async function fetchAttributes() {
         try {
             const attributes = await fetchUserAttributes();
@@ -205,8 +204,7 @@ function Feeds() {
             <div className="content-wrapper">
                 <Menu />
                 <main className="content-container">
-                <div className="feed-content">
-                    <div className="feed-input-container">
+                <div className="feed-input-container">
                     <textarea
                         value={newFeedContent}
                         onChange={handleInputChange}
@@ -216,44 +214,43 @@ function Feeds() {
                     />
                     <div className="input-footer">
                         <div className="left-side">
-                        <label className="file-upload-label">
-                            <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            style={{ display: 'none' }}
-                            />
-                            <FaImage className="media-icon" />
-                        </label>
+                            <label className="file-upload-label">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    style={{ display: 'none' }}
+                                />
+                                <FaImage className="media-icon" />
+                            </label>
                         </div>
                         <div className="right-side">
-                        <div className="character-count">
-                            {newFeedContent.length}/{MAX_CHARACTERS}
-                        </div>
-                        <button className="post-button" onClick={() => createFeed(user)}>Post</button>
+                            <div className="character-count">
+                                {newFeedContent.length}/{MAX_CHARACTERS}
+                            </div>
+                            <button className="post-button" onClick={() => createFeed(user)}>Post</button>
                         </div>
                     </div>
                     <div className="image-preview">
                         {images.map((image, index) => (
-                        <img key={index} src={URL.createObjectURL(image)} alt={`Upload ${index + 1}`} />
+                            <img key={index} src={URL.createObjectURL(image)} alt={`Upload ${index + 1}`} />
                         ))}
                     </div>
-                    </div>
-                    <ul className="feed-list">
+                </div>
+                <ul className="feed-list">
                     {feeds.map((feed) => (
                         <li key={feed.id} className="feed-item">
-                        <button className="delete-button" onClick={() => deleteFeed(feed.id)}>×</button>
-                        <h3 className="feed-title">{feed.title}</h3>
-                        <p className="feed-author">{feed.author}</p>
-                        <p className="feed-content">{feed.content}</p>
-                        {feed.images && feed.images.map((image, index) => (
-                            image && <img key={index} src={imageUrls[image]} alt={`Feed image ${index + 1}`} />
-                        ))}
-                        <p className="feed-content">{recognizedObjects[feed.id]}</p>
+                            <button className="delete-button" onClick={() => deleteFeed(feed.id)}>×</button>
+                            <h3 className="feed-title">{feed.title}</h3>
+                            <p className="feed-author">{feed.author}</p>
+                            <p className="feed-content">{feed.content}</p>
+                            {feed.images && feed.images.map((image, index) => (
+                                image && <img key={index} src={imageUrls[image]} alt={`Feed image ${index + 1}`} />
+                            ))}
+                            <p className="feed-content">{recognizedObjects[feed.id]}</p>
                         </li>
                     ))}
-                    </ul>
-                </div>
+                </ul>
                 </main>
             </div>
             </div>
@@ -263,3 +260,4 @@ function Feeds() {
 }
 
 export default Feeds;
+
