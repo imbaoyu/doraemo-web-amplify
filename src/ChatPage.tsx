@@ -62,8 +62,19 @@ function ChatPage() {
 
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        // Reset to minimum height first
+        textareaRef.current.style.height = '40px';
+        
+        // Get the scroll height
+        const scrollHeight = textareaRef.current.scrollHeight;
+        
+        // Set new height based on content
+        textareaRef.current.style.height = 
+            scrollHeight > 40 ? `${scrollHeight}px` : '40px';
+        
+        // Show/hide scrollbar based on content
+        textareaRef.current.style.overflowY = 
+            scrollHeight > 200 ? 'auto' : 'hidden';
     }
   };
 
@@ -113,21 +124,21 @@ function ChatPage() {
                   <div ref={messagesEndRef} />
                 </div>
               </div>
-              <form onSubmit={handleSubmit} className="chat-input-form">
-                <div>
+              <div className="chat-input-wrapper">
+                <form className="chat-input-form" onSubmit={handleSubmit}>
                   <textarea
                     ref={textareaRef}
                     value={inputMessage}
-                    onChange={ handleInputChange }
-                    onKeyDown={ handleKeyDown }
-                    placeholder="Type your message..."
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
                     className="chat-input"
+                    placeholder="Type your message..."
                   />
                   <button type="submit" className="chat-submit">
                     Send
                   </button>
-                </div>
-              </form>
+                </form>
+              </div>
             </main>
           </div>
         </div>
