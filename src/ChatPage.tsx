@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Authenticator } from "@aws-amplify/ui-react";
+import { generateClient } from 'aws-amplify/api';
 import Banner from './Banner';
 import Menu from './Menu';
 import './App.css';
-import { generateClient } from 'aws-amplify/api';
 
 import type { Schema } from "../amplify/data/resource";
 const client = generateClient<Schema>();
 
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
+
+import { getCurrentUser } from 'aws-amplify/auth';
 
 marked.setOptions({ async: false });
 
@@ -23,6 +25,37 @@ function ChatPage() {
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Fetch chat history when component mounts
+  useEffect(() => {
+    async function fetchChatHistory() {
+      try {
+        const user = await getCurrentUser();
+        const { data: chatHistory } = await client.models.ChatHistory.list({
+          userName: user.username,
+          idx: { ge: 0 },
+          filter: {
+            owner: { eq: user.userId }
+          }
+        });
+        console.log('Raw chat history:', chatHistory);
+        // Convert chat history to Message format and sort by idx
+        const historicalMessages = chatHistory
+          .sort((a, b) => (a.idx ?? 0) - (b.idx ?? 0))
+          .map(chat => ([
+            { text: chat.prompt ?? '', isUser: true },
+            { text: chat.response ?? '', isUser: false }
+          ]))
+          .flat();
+        console.log(historicalMessages.length)
+        setMessages(historicalMessages);
+      } catch (error) {
+        console.error('Error fetching chat history:', error);
+      }
+    }
+
+    fetchChatHistory();
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -97,9 +97,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -248,16 +250,6 @@
   position: relative;
 }
 
-.delete-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-
 .feed-content {
   max-width: 700px;
   margin: 0 auto;
@@ -286,16 +278,6 @@
   text-align: left;
 }
 
-.delete-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-
 .input-footer {
   display: flex;
   justify-content: space-between;
@@ -308,7 +290,7 @@
   font-size: 1em;
   color: #666;
   margin-right: 20px;
-  margin-left: 5px
+  margin-left: 5px;
 }
 
 .feed-input {
@@ -363,11 +345,6 @@
 
 .media-icon:hover {
   color: #1a91da;
-}
-
-.character-count {
-  font-size: 14px;
-  color: #666;
 }
 
 .left-side, .right-side {

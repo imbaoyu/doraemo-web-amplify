@@ -31,7 +31,7 @@ async function chatWithBedrock(aggregatedMessage: Message[]): Promise<string | n
             inferenceConfig: {
                 maxTokens: 500,
                 stopSequences: ["human:", "assistant:", "user:"],
-                temperature: 2,
+                temperature: 1,
                 topP: 0.8,
             },
             system: [{
@@ -88,7 +88,11 @@ async function getLatestIdxForUser(userName: string): Promise<number> {
     }
 }
 
-async function updateChatHistory(userName: string, promptText: string, responseText: string, isNewThread: boolean): Promise<void> {
+async function updateChatHistory(userId: string,
+                                 userName: string,
+                                 promptText: string,
+                                 responseText: string,
+                                 isNewThread: boolean): Promise<void> {
     try {
         // Clean up the prompt and response text
         const cleanedPromptText = promptText.replace(/\s+/g, ' ').trim();
@@ -107,6 +111,7 @@ async function updateChatHistory(userName: string, promptText: string, responseT
                 prompt: { S: cleanedPromptText },
                 response: { S: cleanedResponseText },
                 thread: { S: threadId },
+                owner: { S: userId }
             }
         };
         await dynamoDbClient.send(new PutItemCommand(putParamsPrompt));
@@ -129,6 +134,7 @@ export const handler: Handler = async (event: any, context: Context) => {
             args = event.arguments;
         }
         const userName = event.identity?.username ?? 'anon';
+        const userId = event.identity?.userId ?? 'anonId';
         const promptText = args?.prompt;
         if (!promptText) {
             throw new Error('No prompt provided');
@@ -151,7 +157,7 @@ export const handler: Handler = async (event: any, context: Context) => {
         }
 
         // Update ChatHistory
-        await updateChatHistory(userName, promptText, responseText, true);
+        await updateChatHistory(userId, userName, promptText, responseText, true);
 
         // Return only the response text
         return responseText;
