@@ -134,7 +134,7 @@ export const handler: Handler = async (event: any, context: Context) => {
             args = event.arguments;
         }
         const userName = event.identity?.username ?? 'anon';
-        const userId = event.identity?.userId ?? 'anonId';
+        const userId = event.identity?.claims?.sub ?? 'anonId';
         const promptText = args?.prompt;
         if (!promptText) {
             throw new Error('No prompt provided');

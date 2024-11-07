@@ -47,7 +47,7 @@ function ChatPage() {
             { text: chat.response ?? '', isUser: false }
           ]))
           .flat();
-        console.log(historicalMessages.length)
+        console.log('Processed chat history:', historicalMessages);
         setMessages(historicalMessages);
       } catch (error) {
         console.error('Error fetching chat history:', error);
