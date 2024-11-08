@@ -111,7 +111,9 @@ async function updateChatHistory(userId: string,
                 prompt: { S: cleanedPromptText },
                 response: { S: cleanedResponseText },
                 thread: { S: threadId },
-                owner: { S: userId }
+                owner: { S: userId },
+                createdAt: { S: new Date().toISOString() },
+                updatedAt: { S: new Date().toISOString() }
             }
         };
         await dynamoDbClient.send(new PutItemCommand(putParamsPrompt));
