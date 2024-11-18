@@ -3,7 +3,9 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import { generateClient } from 'aws-amplify/api';
 import Banner from './Banner';
 import Menu from './Menu';
+import PdfWidget from './FileWidget';
 import './App.css';
+
 
 import type { Schema } from "../amplify/data/resource";
 const client = generateClient<Schema>();
@@ -173,6 +175,7 @@ function ChatPage() {
                 </form>
               </div>
             </main>
+            <PdfWidget />
           </div>
         </div>
       )}

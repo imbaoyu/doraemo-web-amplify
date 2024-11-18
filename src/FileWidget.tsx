@@ -27,7 +27,7 @@ function PdfWidget() {
 
   return (
     <div className="pdf-widget">
-      <h3>PDF Documents</h3>
+      <h3>Documents</h3>
       <div className="upload-section">
         <input
           type="file"

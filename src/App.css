@@ -16,7 +16,8 @@
 .content-wrapper {
   display: flex;
   flex-direction: row;
-  height: 100vh;
+  height: calc(100vh - 60px);
+  margin-top: 60px;
 }
 
 .menu {
@@ -28,6 +29,7 @@
   top: 60px;
   left: 0;
   overflow-y: auto;
+  z-index: 100;
 }
 
 .menu a {
@@ -49,11 +51,9 @@
 
 .content-container {
   flex: 1;
-  margin-left: 240px;
-  margin-right: auto;
-  display: flex;
-  flex-direction: column;
-  max-width: 1000px;
+  margin-left: 200px;
+  margin-right: 300px;
+  max-width: calc(100% - 500px);
   padding: 0 20px;
 }
 
@@ -362,7 +362,7 @@
   display: flex;
   flex-direction: column;
   max-width: 1400px;
-  padding: 60px 20px 60px;
+  padding: 20px;
 }
 
 .chat-messages {
@@ -371,6 +371,7 @@
   padding: 20px;
   width: 788px;
   margin-left: 44px;
+  padding-bottom: 100px;
 }
 
 .message {
@@ -411,6 +412,8 @@
   display: flex;
   justify-content: center;
   background-color: transparent;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 .chat-input-form {
@@ -446,4 +449,16 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.pdf-widget {
+  width: 300px;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-left: 1px solid #ddd;
+  height: calc(100vh - 60px);
+  position: fixed;
+  right: 0;
+  top: 60px;
+  overflow-y: auto;
 }
