@@ -5,5 +5,6 @@ export const feedStorage = defineStorage({
   isDefault: true,
   access: (allow) => ({
     "doraemo-feed-images/*": [allow.authenticated.to(["read", "write", "delete"])],
+    "user-documents/*": [allow.authenticated.to(["read", "write", "delete"])]
   }),
 });
