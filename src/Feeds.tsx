@@ -27,7 +27,7 @@ const client = generateClient<Schema>();
 
 const MAX_CHARACTERS = 400;
 
-type IdentifyObjectReturnType = Schema["identifyObject"]["returnType"];
+type IdentifyObjectReturnType = Schema["IdentifyObject"]["returnType"];
 
 function Feeds() {
     const [currentUser, setCurrentUser] = useState<any>(null);
