@@ -73,12 +73,12 @@ function ChatPage() {
     setInputMessage('');
 
     try {
-      const { data } = await client.queries.sendConverseCommand({prompt: inputMessage});
+      const { data } = await client.queries.SendConverseCommand({prompt: inputMessage});
       const responseText = data ?? "No response received";
       // Extract the message text from the response
       setMessages(prevMessages => [...prevMessages, { text: responseText, isUser: false }]);
     } catch (error) {
-      console.error('Error calling sendConverseCommand query:', error);
+      console.error('Error calling SendConverseCommand query:', error);
       setMessages(prevMessages => [...prevMessages, { text: "Sorry, I couldn't process that request.", isUser: false }]);
     }
   };

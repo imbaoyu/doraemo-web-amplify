@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Define the table name using an environment variable
 const CHAT_HISTORY_TABLE_NAME = process.env.CHAT_HISTORY_TABLE_NAME || 'chat-history-table';
-const CHAT_HISTORY_GSI_NAME = 'chatHistoriesByThreadAndIdx';
 const MODEL_ID = 'meta.llama3-70b-instruct-v1:0'
 const REGION = 'us-east-1';
 const SLIDING_WINDOW_SIZE = 10;

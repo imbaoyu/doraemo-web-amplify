@@ -74,7 +74,7 @@ function Feeds() {
         console.log(path)
         return null
         /*
-        const { data } = await client.queries.identifyObject({
+        const { data } = await client.queries.IdentifyObject({
             path, // File name
         });
         return data;

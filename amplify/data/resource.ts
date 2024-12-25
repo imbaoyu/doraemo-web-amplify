@@ -15,20 +15,8 @@ const schema = a.schema({
         images: a.string().array(),
     }).authorization((allow) => [allow.owner()]),
 
-    ChatHistory: a.model({
-        userName: a.string().required(),
-        idx: a.integer().default(1).required(),
-        prompt: a.string().default(""),
-        response: a.string().default(""),
-        thread: a.string().required(),
-    })
-    .identifier(["userName", "idx"])
-    .secondaryIndexes((index) => [index("thread").sortKeys(["idx"])])
-    .authorization((allow) => [allow.owner()]),
-
     // Custom Queries and Mutations
-    identifyObject: a
-        .query()
+    IdentifyObject: a.query()
         .arguments({
             path: a.string(),
         })
@@ -41,8 +29,18 @@ const schema = a.schema({
             })
         ),
 
-    sendConverseCommand: a
-        .query()
+    ChatHistory: a.model({
+        userName: a.string().required(),
+        idx: a.integer().default(1).required(),
+        prompt: a.string().default(""),
+        response: a.string().default(""),
+        thread: a.string().required(),
+    })
+    .identifier(["userName", "idx"])
+    .secondaryIndexes((index) => [index("thread").sortKeys(["idx"])])
+    .authorization((allow) => [allow.owner()]),
+
+    SendConverseCommand: a.query()
         .arguments({
             prompt: a.string().required(),
         })
