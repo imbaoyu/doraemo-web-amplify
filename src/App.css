@@ -236,3 +236,12 @@
 .delete-button:hover {
   background-color: #ffebee;
 }
+
+.spinner {
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}

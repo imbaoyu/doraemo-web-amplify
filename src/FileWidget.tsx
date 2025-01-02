@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { uploadData, list, remove } from 'aws-amplify/storage';
 import { getCurrentUser } from 'aws-amplify/auth';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaSpinner } from 'react-icons/fa';
 import type { UploadDataWithPathInput } from '@aws-amplify/storage';
 
 interface PdfFile {
@@ -22,13 +22,11 @@ function FileWidget() {
     try {
       const user = await getCurrentUser();
       const prefix = `user-documents/${user.userId}/`;
-      const result = await list({
-        prefix: prefix
-      });
+      const result = (await list({ path: prefix })).items;
       
-      const files = result.items.map(item => ({
-        name: item.key.split('/').pop() || '',
-        key: item.key
+      const files = result.map(item => ({
+        name: item.path.split('/').pop() || '',
+        key: item.path
       }));
       
       setPdfs(files);
@@ -44,7 +42,7 @@ function FileWidget() {
     setIsUploading(true);
     try {
       const user = await getCurrentUser();
-      const path = `user-documents/${user.userId}/${Date.now()}-${file.name}`;
+      const path = `user-documents/${user.userId}/${file.name}`;
       
       const uploadInput: UploadDataWithPathInput = {
         path,
@@ -70,7 +68,7 @@ function FileWidget() {
 
   const handleDelete = async (key: string) => {
     try {
-      await remove({ key });
+      await remove({ path: key });
       setPdfs(prev => prev.filter(pdf => pdf.key !== key));
     } catch (error) {
       console.error('Error deleting file:', error);
@@ -89,6 +87,7 @@ function FileWidget() {
           disabled={isUploading}
           key={isUploading ? 'uploading' : 'not-uploading'}
         />
+        {isUploading && <FaSpinner className="spinner" />}
       </div>
       <div className="pdf-list">
         {pdfs.map((pdf, index) => (
