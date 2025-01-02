@@ -91,271 +91,6 @@
   background-color: #ff3333;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-.todo-input-container {
-  padding: 0 5% 1rem;
-  background-color: #f9f9f9;
-}
-
-.todo-input-container input,
-.todo-input-container button {
-  margin-top: 1rem;
-}
-
-.todo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-  width: 90%;
-  max-width: 1600px;
-  margin: 1rem auto;
-  padding: 0 5%;
-}
-
-.todo-tile {
-  position: relative;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: #f9f9f9;
-}
-
-.delete-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 20px;
-  height: 20px;
-  border: none;
-  background-color: transparent;
-  color: #888;
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: color 0.3s;
-}
-
-.delete-button:hover {
-  color: #ff4d4d;
-}
-
-.todo-content {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  padding-top: 40px;
-}
-
-.todo-text {
-  margin-left: 0.5rem;
-  word-break: break-word;
-  flex-grow: 1;
-}
-
-.user-info {
-  font-size: 0.9rem;
-  font-family: inherit;
-}
-
-.user-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.feed-input-container {
-  position: sticky;
-  top: 60px;
-  background-color: white;
-  z-index: 1;
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-}
-
-.button-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
-}
-
-.post-button {
-  padding: 10px 20px;
-  background-color: #1DA1F2;
-  color: white;
-  border: none;
-  border-radius: 9999px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-
-.post-button:hover {
-  background-color: #1a91da;
-}
-
-.feed-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.feed-tile {
-  border: 1px solid #ddd;
-  padding: 15px;
-  position: relative;
-}
-
-.feed-content {
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.feed-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 70px 0 0;
-  margin: 0;
-  list-style-type: none;
-}
-
-.feed-item {
-  border: 1px solid #ddd;
-  margin-bottom: 5px;
-  padding: 15px;
-  position: relative;
-  text-align: left;
-}
-
-.feed-title,
-.feed-author,
-.feed-content,
-.feed-url {
-  text-align: left;
-}
-
-.input-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0;
-  margin-left: 5px;
-}
-
-.character-count {
-  font-size: 1em;
-  color: #666;
-  margin-right: 20px;
-  margin-left: 5px;
-}
-
-.feed-input {
-  width: 100%;
-  min-height: 100px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  resize: none;
-  margin-bottom: 10px;
-}
-
-.image-preview {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.image-preview img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-
-.feed-item img {
-  max-width: 100%;
-  height: auto;
-  margin-top: 10px;
-  border-radius: 4px;
-}
-
-.file-upload-label {
-  cursor: pointer;
-}
-
-.clipper-icon {
-  font-size: 20px;
-  color: #555;
-}
-
-.clipper-icon:hover {
-  color: #007bff;
-}
-
-.media-icon {
-  cursor: pointer;
-  font-size: 20px;
-  color: #1DA1F2;
-}
-
-.media-icon:hover {
-  color: #1a91da;
-}
-
-.left-side, .right-side {
-  display: flex;
-  align-items: center;
-}
-
-.right-side {
-  gap: 10px;
-}
-
 .chat-container {
   flex: 1;
   margin: 0 auto;
@@ -461,4 +196,28 @@
   right: 0;
   top: 60px;
   overflow-y: auto;
+}
+
+.pdf-list {
+  margin-top: 16px;
+}
+
+.pdf-item {
+  padding: 8px;
+  margin: 4px 0;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  margin-right: 8px;
 }

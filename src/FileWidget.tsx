@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { uploadData } from 'aws-amplify/storage';
 import { getCurrentUser } from 'aws-amplify/auth';
-import { FaFile } from 'react-icons/fa';
 import type { UploadDataWithPathInput } from '@aws-amplify/storage';
 
 interface PdfFile {
@@ -30,10 +29,14 @@ function FileWidget() {
         }
       };
       
+      console.log('Starting upload...', file.name);
       await uploadData(uploadInput).result;
+      console.log('Upload complete!', path);
+      
       setPdfs(prev => [...prev, { name: file.name, url: path }]);
     } catch (error) {
       console.error('Error uploading file:', error);
+      alert('Failed to upload file. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -43,17 +46,13 @@ function FileWidget() {
     <div className="pdf-widget">
       <h3>Documents</h3>
       <div className="upload-section">
-        <label className="file-upload-label">
-          <input
-            type="file"
-            accept=".pdf,.doc,.docx"
-            onChange={handleFileUpload}
-            disabled={isUploading}
-            style={{ display: 'none' }}
-          />
-          <FaFile className="media-icon" />
-          <span>Upload Document</span>
-        </label>
+        <input
+          type="file"
+          accept=".pdf,.doc,.docx"
+          onChange={handleFileUpload}
+          disabled={isUploading}
+          key={isUploading ? 'uploading' : 'not-uploading'}
+        />
       </div>
       <div className="pdf-list">
         {pdfs.map((pdf, index) => (
