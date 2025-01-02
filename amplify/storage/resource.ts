@@ -4,7 +4,7 @@ export const storage = defineStorage({
   name: "doraemo-web-amplify-storage",
   isDefault: true,
   access: (allow) => ({
-    "doraemo-feed-images/*": [allow.authenticated.to(["read", "write", "delete"])],
-    "user-documents/*": [allow.authenticated.to(["read", "write", "delete"])]
+    "doraemo-feed-images/*": [allow.authenticated.to(["get", "write", "delete", "list"])],
+    "user-documents/*": [allow.authenticated.to(["get", "write", "delete", "list"])]
   }),
 });

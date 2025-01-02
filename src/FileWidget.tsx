@@ -1,16 +1,41 @@
-import React, { useState } from 'react';
-import { uploadData } from 'aws-amplify/storage';
+import React, { useState, useEffect } from 'react';
+import { uploadData, list, remove } from 'aws-amplify/storage';
 import { getCurrentUser } from 'aws-amplify/auth';
+import { FaTrash } from 'react-icons/fa';
 import type { UploadDataWithPathInput } from '@aws-amplify/storage';
 
 interface PdfFile {
   name: string;
-  url: string;
+  key: string;
 }
 
 function FileWidget() {
   const [pdfs, setPdfs] = useState<PdfFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Load existing files on component mount
+  useEffect(() => {
+    loadExistingFiles();
+  }, []);
+
+  const loadExistingFiles = async () => {
+    try {
+      const user = await getCurrentUser();
+      const prefix = `user-documents/${user.userId}/`;
+      const result = await list({
+        prefix: prefix
+      });
+      
+      const files = result.items.map(item => ({
+        name: item.key.split('/').pop() || '',
+        key: item.key
+      }));
+      
+      setPdfs(files);
+    } catch (error) {
+      console.error('Error loading files:', error);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,12 +58,23 @@ function FileWidget() {
       await uploadData(uploadInput).result;
       console.log('Upload complete!', path);
       
-      setPdfs(prev => [...prev, { name: file.name, url: path }]);
+      // Refresh the file list after upload
+      await loadExistingFiles();
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Failed to upload file. Please try again.');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async (key: string) => {
+    try {
+      await remove({ key });
+      setPdfs(prev => prev.filter(pdf => pdf.key !== key));
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      alert('Failed to delete file. Please try again.');
     }
   };
 
@@ -58,6 +94,13 @@ function FileWidget() {
         {pdfs.map((pdf, index) => (
           <div key={index} className="pdf-item">
             <span>{pdf.name}</span>
+            <button 
+              className="delete-button"
+              onClick={() => handleDelete(pdf.key)}
+              aria-label="Delete file"
+            >
+              <FaTrash />
+            </button>
           </div>
         ))}
       </div>

@@ -209,6 +209,7 @@
   border-radius: 4px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
@@ -220,4 +221,18 @@
 
 .user-info {
   margin-right: 8px;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #ffebee;
 }
