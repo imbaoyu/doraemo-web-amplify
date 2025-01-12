@@ -83,7 +83,7 @@ documentFunction.addToRolePolicy(
 );
 
 // Set DynamoDB table name environment variable - using a predictable pattern
-const stackName = Stack.of(backend.data).stackName;
-const tableName = `UserDocument-${stackName}`;
-documentFunction.addEnvironment('USER_DOCUMENT_TABLE_NAME', tableName);
+// const stackName = Stack.of(backend.data).stackName;
+// const tableName = `UserDocument-${stackName}`;
+// documentFunction.addEnvironment('USER_DOCUMENT_TABLE_NAME', tableName);
 

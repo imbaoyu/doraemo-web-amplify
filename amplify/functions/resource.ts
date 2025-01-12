@@ -9,7 +9,6 @@ export const chatWithBedrock = defineFunction({
 // See: https://docs.amplify.aws/react/build-a-backend/troubleshooting/circular-dependency/
 export const processDocument = defineFunction({
     name: 'processDocument',
-    resourceGroupName: 'data',
     entry: './storageHandler.ts',
     timeoutSeconds: 30
 }); 
