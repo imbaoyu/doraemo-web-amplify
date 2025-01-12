@@ -40,6 +40,16 @@ const schema = a.schema({
     .secondaryIndexes((index) => [index("thread").sortKeys(["idx"])])
     .authorization((allow) => [allow.owner()]),
 
+    // Amplify will synthesize this to add an id field
+    UserDocument: a.model({
+        path: a.string().required(),
+        status: a.string().required(),
+    })
+    .authorization((allow) => [
+        allow.owner().to(['read', 'list']),
+        allow.custom('function').to(['create', 'read', 'update', 'delete'])
+    ]),
+
     SendConverseCommand: a.query()
         .arguments({
             prompt: a.string().required(),

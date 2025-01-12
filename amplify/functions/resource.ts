@@ -5,3 +5,9 @@ export const chatWithBedrock = defineFunction({
     entry: './chatHandler.ts',
     timeoutSeconds: 30
 });
+
+export const processDocument = defineFunction({
+    name: 'processDocument',
+    entry: './storageHandler.ts',
+    timeoutSeconds: 30
+}); 

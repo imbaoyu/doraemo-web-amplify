@@ -122,6 +122,25 @@ async function updateChatHistory(userId: string,
     }
 }
 
+async function getLatestChatHistoryForUser(userName: string, amount: number): Promise<any[]> {
+    try {
+        const params = {
+            TableName: CHAT_HISTORY_TABLE_NAME,
+            KeyConditionExpression: 'userName = :userName',
+            ExpressionAttributeValues: {
+                ':userName': { S: userName },
+            },
+            ScanIndexForward: false, // Sort descending to get the latest records first
+            Limit: amount // Limit to the latest 10 records
+        };
+
+        const result = await dynamoDbClient.send(new QueryCommand(params));
+        return result.Items || [];
+    } catch (error) {
+        console.error("Error retrieving chat history:", error);
+        throw new Error("Failed to retrieve chat history");
+    }
+}
 
 export const handler: Handler = async (event: any, context: Context) => {
     console.log("Received event:", JSON.stringify(event));
@@ -168,24 +187,3 @@ export const handler: Handler = async (event: any, context: Context) => {
         throw new Error((e as Error).message);
     }
 };
-
-
-async function getLatestChatHistoryForUser(userName: string, amount: number): Promise<any[]> {
-    try {
-        const params = {
-            TableName: CHAT_HISTORY_TABLE_NAME,
-            KeyConditionExpression: 'userName = :userName',
-            ExpressionAttributeValues: {
-                ':userName': { S: userName },
-            },
-            ScanIndexForward: false, // Sort descending to get the latest records first
-            Limit: amount // Limit to the latest 10 records
-        };
-
-        const result = await dynamoDbClient.send(new QueryCommand(params));
-        return result.Items || [];
-    } catch (error) {
-        console.error("Error retrieving chat history:", error);
-        throw new Error("Failed to retrieve chat history");
-    }
-}
