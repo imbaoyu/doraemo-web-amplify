@@ -46,7 +46,7 @@ const schema = a.schema({
         status: a.string().required(),
     })
     .authorization((allow) => [
-        allow.owner().to(['read', 'list']),
+        allow.owner().to(['read', 'delete']),
         allow.custom('function').to(['create', 'read', 'update', 'delete'])
     ]),
 
