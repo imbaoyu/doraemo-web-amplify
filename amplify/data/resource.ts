@@ -1,5 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
-import { chatWithBedrock } from "../functions/resource";
+import { chatWithBedrock, processDocument } from "../functions/resource";
 
 const schema = a.schema({
     Todo: a.model({
@@ -67,7 +67,9 @@ export const data = defineData({
     schema,
     authorizationModes: {
         defaultAuthorizationMode: "userPool",
-        // API Key is used for a.allow.public() rules
+        lambdaAuthorizationMode: {
+            function: processDocument
+        },
         apiKeyAuthorizationMode: {
             expiresInDays: 30,
         },
