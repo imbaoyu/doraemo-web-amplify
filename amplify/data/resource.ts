@@ -1,5 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
-import { chatWithBedrock, processDocument } from "../functions/resource";
+import { chatWithBedrock } from "../functions/resource";
 
 const schema = a.schema({
     Todo: a.model({
