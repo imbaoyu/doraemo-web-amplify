@@ -25,36 +25,8 @@ backend.data.resources.cfnResources.cfnGraphqlApi.environmentVariables = {
   S3_BUCKET_NAME: backend.storage.resources.bucket.bucketName,
 };
 
-/*
-const rekognitionDataSource = backend.data.addHttpDataSource(
-  "RekognitionDataSource",
-  `https://rekognition.${dataStack.region}.amazonaws.com`,
-  {
-    authorizationConfig: {
-      signingRegion: dataStack.region,
-      signingServiceName: "rekognition",
-    },
-  }
-);
-
-rekognitionDataSource.grantPrincipal.addToPrincipalPolicy(
- new PolicyStatement({
-   actions: ["rekognition:DetectText", "rekognition:DetectLabels"],
-   resources: ["*"],
- })
-);
-
-
-backend.storage.resources.bucket.grantReadWrite(
-  rekognitionDataSource.grantPrincipal
-);
-*/
-
-// Cast chatWithBedrockLambda to the correct type
 const chatFunction = backend.chatWithBedrock.resources.lambda as Function;
-
 // Set the environment variable for the Lambda function
-// TODO use more amplify native method, write to the model
 chatFunction.addEnvironment(
     'CHAT_HISTORY_TABLE_NAME',
     'ChatHistory-jku623bccfdvziracnh673rzwe-NONE'
@@ -96,20 +68,20 @@ backend.storage.resources.bucket.addEventNotification(
   { prefix: 'user-documents/' }
 );
 
-// const userDocumentTable = backend.data.resources.tables.UserDocument.tableName;
-
+// Add DynamoDB permissions for the document function
 documentFunction.addToRolePolicy(
   new PolicyStatement({
     actions: [
-      'appsync:GraphQL'
+      'dynamodb:PutItem',
+      'dynamodb:GetItem',
+      'dynamodb:Query',
+      'dynamodb:UpdateItem',
+      'dynamodb:DeleteItem'
     ],
-    resources: [
-      `${backend.data.resources.graphqlApi.arn}/types/Mutation/fields/createUserDocument`
-    ]
+    resources: ['*']
   })
 );
 
-// Set API environment variables
-documentFunction.addEnvironment('API_URL', backend.data.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl);
-documentFunction.addEnvironment('API_REGION', 'us-east-1');
+// Set DynamoDB table name environment variable
+documentFunction.addEnvironment('USER_DOCUMENT_TABLE_NAME', backend.data.resources.tables.UserDocument.tableName);
 

@@ -46,7 +46,7 @@ const schema = a.schema({
         status: a.string().required(),
     })
     .authorization((allow) => [
-        allow.owner().to(['create', 'read', 'update', 'delete']),
+        allow.owner().to(['read', 'update']),
     ]),
 
     SendConverseCommand: a.query()
