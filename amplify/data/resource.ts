@@ -46,8 +46,7 @@ const schema = a.schema({
         status: a.string().required(),
     })
     .authorization((allow) => [
-        allow.owner().to(['read', 'delete']),
-        allow.custom('function').to(['create', 'read', 'update', 'delete'])
+        allow.owner().to(['create', 'read', 'update', 'delete']),
     ]),
 
     SendConverseCommand: a.query()
@@ -67,9 +66,6 @@ export const data = defineData({
     schema,
     authorizationModes: {
         defaultAuthorizationMode: "userPool",
-        lambdaAuthorizationMode: {
-            function: processDocument
-        },
         apiKeyAuthorizationMode: {
             expiresInDays: 30,
         },
