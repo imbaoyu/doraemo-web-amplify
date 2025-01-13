@@ -2,31 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { uploadData, list, remove } from 'aws-amplify/storage';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { FaTrash, FaSpinner } from 'react-icons/fa';
-import type { UploadDataWithPathInput } from '@aws-amplify/storage';
+import { generateClient } from 'aws-amplify/api';
+import type { Schema } from '../amplify/data/resource';
+
+const client = generateClient<Schema>();
 
 interface PdfFile {
   name: string;
   key: string;
+  status?: string;
 }
 
 function FileWidget() {
   const [pdfs, setPdfs] = useState<PdfFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Load existing files on component mount
-  useEffect(() => {
-    loadExistingFiles();
-  }, []);
-
+  // Load existing files and their status
   const loadExistingFiles = async () => {
     try {
       const user = await getCurrentUser();
       const prefix = `user-documents/${user.userId}/`;
       const result = (await list({ path: prefix })).items;
       
-      const files = result.map(item => ({
-        name: item.path.split('/').pop() || '',
-        key: item.path
+      const files = await Promise.all(result.map(async item => {
+        const doc = await client.models.UserDocument.get({ id: item.path });
+        return {
+          name: item.path.split('/').pop() || '',
+          key: item.path,
+          status: doc.data?.status
+        };
       }));
       
       setPdfs(files);
@@ -34,6 +38,11 @@ function FileWidget() {
       console.error('Error loading files:', error);
     }
   };
+
+  // Load existing files on component mount
+  useEffect(() => {
+    loadExistingFiles();
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,6 +102,7 @@ function FileWidget() {
         {pdfs.map((pdf, index) => (
           <div key={index} className="pdf-item">
             <span>{pdf.name}</span>
+            {pdf.status === 'uploaded' && <span className="status">processing...</span>}
             <button 
               className="delete-button"
               onClick={() => handleDelete(pdf.key)}

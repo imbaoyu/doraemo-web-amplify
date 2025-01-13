@@ -245,3 +245,9 @@
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
+
+.pdf-item .status {
+  color: #666;
+  font-style: italic;
+  margin-left: 8px;
+}

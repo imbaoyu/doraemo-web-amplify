@@ -60,6 +60,9 @@ chatFunction.addToRolePolicy(
   })
 );
 
+chatFunction.addEnvironment('AMPLIFY_API_ID', '#{AMPLIFY_API_ID}');
+chatFunction.addEnvironment('AMPLIFY_ENV', '#{AMPLIFY_ENV}');
+
 const documentFunction = backend.processDocument.resources.lambda as Function;
 
 backend.storage.resources.bucket.addEventNotification(
@@ -86,5 +89,8 @@ documentFunction.addEnvironment(
     'USER_DOCUMENT_TABLE_NAME',
     'UserDocument-jku623bccfdvziracnh673rzwe-NONE'
 );
+
+documentFunction.addEnvironment('AMPLIFY_API_ID', '#{AMPLIFY_API_ID}');
+documentFunction.addEnvironment('AMPLIFY_ENV', '#{AMPLIFY_ENV}');
 
 
