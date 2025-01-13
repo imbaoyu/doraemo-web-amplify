@@ -53,7 +53,7 @@ function FileWidget() {
       const user = await getCurrentUser();
       const path = `user-documents/${user.userId}/${file.name}`;
       
-      const uploadInput: UploadDataWithPathInput = {
+      const uploadInput = {
         path,
         data: file,
         options: {
