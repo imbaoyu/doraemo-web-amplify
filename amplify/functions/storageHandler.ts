@@ -17,7 +17,7 @@ export const handler: Handler = async (event: S3Event) => {
                 Item: {
                     id: { S: key }, // Using the path as the id
                     path: { S: key },
-                    owner: owner,
+                    owner: { S: owner },
                     status: { S: 'uploaded' },
                     createdAt: { S: new Date().toISOString() },
                     updatedAt: { S: new Date().toISOString() }
