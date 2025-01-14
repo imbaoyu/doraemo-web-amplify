@@ -101,8 +101,10 @@ function FileWidget() {
       <div className="pdf-list">
         {pdfs.map((pdf, index) => (
           <div key={index} className="pdf-item">
-            <span>{pdf.name}</span>
-            {pdf.status === 'uploaded' && <span className="status">processing...</span>}
+            <div className="pdf-item-content">
+              <span className="filename">{pdf.name}</span>
+              {pdf.status === 'uploaded' && <span className="status">processing...</span>}
+            </div>
             <button 
               className="delete-button"
               onClick={() => handleDelete(pdf.key)}

@@ -71,6 +71,12 @@ backend.storage.resources.bucket.addEventNotification(
   { prefix: 'user-documents/' }
 );
 
+backend.storage.resources.bucket.addEventNotification(
+  s3.EventType.OBJECT_REMOVED,
+  new s3n.LambdaDestination(documentFunction),
+  { prefix: 'user-documents/' }
+);
+
 // Add DynamoDB permissions for the document function
 documentFunction.addToRolePolicy(
   new PolicyStatement({
@@ -90,7 +96,5 @@ documentFunction.addEnvironment(
     'UserDocument-jku623bccfdvziracnh673rzwe-NONE'
 );
 
-documentFunction.addEnvironment('AMPLIFY_API_ID', '#{AMPLIFY_API_ID}');
-documentFunction.addEnvironment('AMPLIFY_ENV', '#{AMPLIFY_ENV}');
 
 

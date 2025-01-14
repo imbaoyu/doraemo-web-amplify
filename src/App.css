@@ -251,3 +251,20 @@
   font-style: italic;
   margin-left: 8px;
 }
+
+.pdf-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.pdf-item .filename {
+  word-break: break-all;
+}
+
+.pdf-item .status {
+  color: #666;
+  font-style: italic;
+  font-size: 0.9em;
+}
