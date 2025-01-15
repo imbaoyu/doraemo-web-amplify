@@ -1,14 +1,17 @@
 import { defineFunction } from "@aws-amplify/backend";
+import { Function } from "aws-cdk-lib/aws-lambda";
 
-export const chatWithBedrock = defineFunction({
-    name: 'chatWithBedrock',
-    entry: './chatHandler.ts',
-    timeoutSeconds: 30,
-});
+export const chatWithBedrock = defineFunction(
+    (scope) => Function.fromFunctionArn(
+        scope,
+        'chatWithBedrock',
+        'arn:aws:lambda:us-east-1:847373240038:function:DoraemoCdkStack-ChatProcessor34D41143-wOCdGd6rR0CK'
+    )
+);
 
 // See: https://docs.amplify.aws/react/build-a-backend/troubleshooting/circular-dependency/
 export const processDocument = defineFunction({
     name: 'processDocument',
     entry: './storageHandler.ts',
     timeoutSeconds: 30
-}); 
+});
