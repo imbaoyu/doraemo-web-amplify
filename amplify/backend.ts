@@ -66,8 +66,9 @@ chatFunction.addEnvironment('AMPLIFY_ENV', '#{AMPLIFY_ENV}');
 
 const documentFunction = backend.processDocument.resources.lambda as Function;
 
-// Create SNS topic for document upload notifications
-const documentUploadTopic = new Topic(dataStack, 'DocumentUploadTopic', {
+const documentStack = Stack.of(backend.processDocument.resources.lambda);
+
+const documentUploadTopic = new Topic(documentStack, 'DocumentUploadTopic', {
     displayName: 'Document Upload Notifications'
 });
 
