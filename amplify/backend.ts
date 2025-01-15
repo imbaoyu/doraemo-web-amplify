@@ -6,8 +6,9 @@ import { chatWithBedrock, processDocument } from './functions/resource';
 import { Stack } from 'aws-cdk-lib';
 import { Function } from 'aws-cdk-lib/aws-lambda';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
+import { EventType } from 'aws-cdk-lib/aws-s3';
+import { LambdaDestination } from 'aws-cdk-lib/aws-s3-notifications';
+import { Topic } from 'aws-cdk-lib/aws-sns';
 
 const backend = defineBackend({
   auth,
@@ -65,15 +66,20 @@ chatFunction.addEnvironment('AMPLIFY_ENV', '#{AMPLIFY_ENV}');
 
 const documentFunction = backend.processDocument.resources.lambda as Function;
 
+// Create SNS topic for document upload notifications
+const documentUploadTopic = new Topic(dataStack, 'DocumentUploadTopic', {
+    displayName: 'Document Upload Notifications'
+});
+
 backend.storage.resources.bucket.addEventNotification(
-  s3.EventType.OBJECT_CREATED,
-  new s3n.LambdaDestination(documentFunction),
+  EventType.OBJECT_CREATED,
+  new LambdaDestination(documentFunction),
   { prefix: 'user-documents/' }
 );
 
 backend.storage.resources.bucket.addEventNotification(
-  s3.EventType.OBJECT_REMOVED,
-  new s3n.LambdaDestination(documentFunction),
+  EventType.OBJECT_REMOVED,
+  new LambdaDestination(documentFunction),
   { prefix: 'user-documents/' }
 );
 
@@ -91,10 +97,26 @@ documentFunction.addToRolePolicy(
   })
 );
 
+// Add SNS publish permissions for the document function
+documentFunction.addToRolePolicy(
+  new PolicyStatement({
+    actions: [
+      'sns:Publish'
+    ],
+    resources: [documentUploadTopic.topicArn]
+  })
+);
+
 documentFunction.addEnvironment(
     'USER_DOCUMENT_TABLE_NAME',
     'UserDocument-jku623bccfdvziracnh673rzwe-NONE'
 );
+
+documentFunction.addEnvironment(
+    'DOCUMENT_UPLOAD_TOPIC_ARN',
+    documentUploadTopic.topicArn
+);
+
 
 
 
