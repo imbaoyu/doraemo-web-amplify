@@ -239,7 +239,7 @@
 
 .spinner {
   animation: spin 1s linear infinite;
-  margin-left: 8px;
+  margin-left: 10px;
 }
 
 @keyframes spin {
@@ -267,4 +267,57 @@
   color: #666;
   font-style: italic;
   font-size: 0.9em;
+}
+
+.animated-dots {
+  display: inline-block;
+  animation: ellipsis 1.4s infinite;
+}
+
+@keyframes ellipsis {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.file-upload-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+  border: none;
+}
+
+.file-upload-button:hover {
+  background-color: #0056b3;
+}
+
+.upload-section {
+  margin-bottom: 16px;
+}
+
+/* Common button style */
+.chat-submit,
+.file-upload-button,
+.delete-button,
+.signout-button {
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9rem;
+  border: none;
+  color: white;
+  background-color: #007bff;
+}
+
+.chat-submit:hover,
+.file-upload-button:hover,
+.delete-button:hover,
+.signout-button:hover {
+  background-color: #0056b3;
 }

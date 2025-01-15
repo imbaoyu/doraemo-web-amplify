@@ -44,6 +44,27 @@ function FileWidget() {
     loadExistingFiles();
   }, []);
 
+  useEffect(() => {
+    // Set up subscription for status updates
+    const sub = client.models.UserDocument.observeQuery()
+      .subscribe({
+        next: ({ items }) => {
+          setPdfs(prevPdfs => {
+            return prevPdfs.map(pdf => {
+              const updatedDoc = items.find(item => item.id === pdf.key);
+              return updatedDoc ? { ...pdf, status: updatedDoc.status } : pdf;
+            });
+          });
+        },
+        error: (error) => console.error('Subscription error:', error)
+      });
+
+    // Cleanup subscription on component unmount
+    return () => {
+      sub.unsubscribe();
+    };
+  }, []);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -61,12 +82,14 @@ function FileWidget() {
         }
       };
       
-      console.log('Starting upload...', file.name);
       await uploadData(uploadInput).result;
-      console.log('Upload complete!', path);
       
-      // Refresh the file list after upload
-      await loadExistingFiles();
+      // Add the new file to the list immediately with 'uploaded' status
+      setPdfs(prev => [...prev, {
+        name: file.name,
+        key: path,
+        status: 'uploaded'
+      }]);
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Failed to upload file. Please try again.');
@@ -89,13 +112,15 @@ function FileWidget() {
     <div className="pdf-widget">
       <h3>Documents</h3>
       <div className="upload-section">
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={handleFileUpload}
-          disabled={isUploading}
-          key={isUploading ? 'uploading' : 'not-uploading'}
-        />
+        <label className="file-upload-button">
+          Choose File
+          <input
+            type="file"
+            onChange={handleFileUpload}
+            accept=".pdf"
+            style={{ display: 'none' }}
+          />
+        </label>
         {isUploading && <FaSpinner className="spinner" />}
       </div>
       <div className="pdf-list">
@@ -103,7 +128,7 @@ function FileWidget() {
           <div key={index} className="pdf-item">
             <div className="pdf-item-content">
               <span className="filename">{pdf.name}</span>
-              {pdf.status === 'uploaded' && <span className="status">processing...</span>}
+              {pdf.status === 'uploaded' && <span className="status">processing<span className="animated-dots">...</span></span>}
             </div>
             <button 
               className="delete-button"
