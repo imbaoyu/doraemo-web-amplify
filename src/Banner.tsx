@@ -26,6 +26,7 @@ function Banner({ onSignOut }: BannerProps) {
         console.log('User session expired.');
         setIsAuthenticated(false);
         setUserEmail(undefined);
+        // navigate('/');
       } else {
         console.error('Error fetching user attributes:', error);
       }
@@ -45,16 +46,16 @@ function Banner({ onSignOut }: BannerProps) {
   };
 
   const handleSignIn = () => {
-    navigate('/');
+    navigate('/deals');
   };
 
   const handleSignUp = () => {
-    navigate('/');
+    navigate('/deals');
   };
 
   return (
     <div className="top-banner">
-      <h1>Doraemo</h1>
+      <h1>Playground</h1>
       <div className="user-controls">
         {isAuthenticated ? (
           <>
