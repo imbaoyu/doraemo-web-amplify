@@ -42,13 +42,13 @@ const LandingPage = () => {
           {isAuthenticated ? (
             <>
               <h2>Welcome Back, {userEmail}!</h2>
-              <p>Manage your social media accounts from one place!</p>
-              <a href="/feeds">Go to Feeds Page</a>
+              <p>Start a conversation with your AI assistant powered by your documents.</p>
+              <a href="/chat">Go to Chat</a>
             </>
           ) : (
             <>
-              <h2>Your One Stop Social Media Hub</h2>
-              <p>This is where you can manage all your social media accounts from one place!</p>
+              <h2>Your AI Document Assistant</h2>
+              <p>Chat with an AI that understands your documents and helps you work with them effectively.</p>
             </>
           )}
         </main>
