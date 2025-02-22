@@ -4,7 +4,7 @@ import { Function } from "aws-cdk-lib/aws-lambda";
 export const chatWithBedrock = defineFunction(
     (scope) => Function.fromFunctionArn(
         scope,
-        'chatWithBedrock',
+        'Resource',
         'arn:aws:lambda:us-east-1:847373240038:function:DoraemoCdkStack-ChatProcessor34D41143-wOCdGd6rR0CK'
     )
 );
