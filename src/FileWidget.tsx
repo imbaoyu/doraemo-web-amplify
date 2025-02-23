@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { uploadData, list, remove } from 'aws-amplify/storage';
-import { getCurrentUser } from 'aws-amplify/auth';
 import { FaTrash, FaSpinner } from 'react-icons/fa';
 import { generateClient } from 'aws-amplify/api';
 import type { Schema } from '../amplify/data/resource';
@@ -13,42 +12,68 @@ interface PdfFile {
   status?: string;
 }
 
-function FileWidget() {
+interface FileWidgetProps {
+  user: {
+    userId: string;
+    username: string;
+  };
+}
+
+function FileWidget({ user }: FileWidgetProps) {
   const [pdfs, setPdfs] = useState<PdfFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   // Load existing files and their status
   const loadExistingFiles = async () => {
+    console.log('Loading files for user:', user);
     try {
-      const user = await getCurrentUser();
       const prefix = `user-documents/${user.userId}/`;
-      const result = (await list({ path: prefix })).items;
+      console.log('Listing files with prefix:', prefix);
+      const result = await list({ path: prefix });
+      console.log('List result:', result);
       
-      const files = await Promise.all(result.map(async item => {
-        const doc = await client.models.UserDocument.get({ id: item.path });
-        return {
-          name: item.path.split('/').pop() || '',
-          key: item.path,
-          status: doc.data?.status
-        };
+      if (!result.items.length) {
+        console.log('No files found in storage');
+        return;
+      }
+
+      const files = await Promise.all(result.items.map(async item => {
+        console.log('Processing file:', item);
+        try {
+          const doc = await client.models.UserDocument.get({ id: item.path });
+          console.log('Document data:', doc);
+          return {
+            name: item.path.split('/').pop() || '',
+            key: item.path,
+            status: doc.data?.status
+          } as PdfFile;
+        } catch (error) {
+          console.error('Error fetching document data for:', item.path, error);
+          return null;
+        }
       }));
       
-      setPdfs(files);
+      const validFiles = files.filter((file): file is PdfFile => file !== null);
+      console.log('Valid files:', validFiles);
+      setPdfs(validFiles);
     } catch (error) {
       console.error('Error loading files:', error);
     }
   };
 
-  // Load existing files on component mount
+  // Load existing files when user is available
   useEffect(() => {
+    console.log('FileWidget mounted with user:', user);
     loadExistingFiles();
-  }, []);
+  }, [user.userId]); // Depend on user.userId specifically
 
   useEffect(() => {
+    console.log('Setting up UserDocument subscription');
     // Set up subscription for status updates
     const sub = client.models.UserDocument.observeQuery()
       .subscribe({
         next: ({ items }) => {
+          console.log('Received UserDocument update:', items);
           setPdfs(prevPdfs => {
             return prevPdfs.map(pdf => {
               const updatedDoc = items.find(item => item.id === pdf.key);
@@ -61,6 +86,7 @@ function FileWidget() {
 
     // Cleanup subscription on component unmount
     return () => {
+      console.log('Cleaning up UserDocument subscription');
       sub.unsubscribe();
     };
   }, []);
@@ -71,7 +97,6 @@ function FileWidget() {
     
     setIsUploading(true);
     try {
-      const user = await getCurrentUser();
       const path = `user-documents/${user.userId}/${file.name}`;
       
       const uploadInput = {

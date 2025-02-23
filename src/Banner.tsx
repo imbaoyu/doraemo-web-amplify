@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchUserAttributes, signOut } from 'aws-amplify/auth';
+import { fetchUserAttributes, signOut, signInWithRedirect } from 'aws-amplify/auth';
 import { AuthError } from '@aws-amplify/auth';
 
 interface BannerProps {
@@ -26,7 +26,6 @@ function Banner({ onSignOut }: BannerProps) {
         console.log('User session expired.');
         setIsAuthenticated(false);
         setUserEmail(undefined);
-        // navigate('/');
       } else {
         console.error('Error fetching user attributes:', error);
       }
@@ -46,16 +45,16 @@ function Banner({ onSignOut }: BannerProps) {
   };
 
   const handleSignIn = () => {
-    navigate('/deals');
+    signInWithRedirect({ provider: 'Google' });
   };
 
   const handleSignUp = () => {
-    navigate('/deals');
+    signInWithRedirect({ provider: 'Google' });
   };
 
   return (
     <div className="top-banner">
-      <h1>Playground</h1>
+      <h1>Doraemo</h1>
       <div className="user-controls">
         {isAuthenticated ? (
           <>
@@ -64,8 +63,8 @@ function Banner({ onSignOut }: BannerProps) {
           </>
         ) : (
           <>
-            <button className="login-button" onClick={handleSignIn}>Login</button>
-            <button className="signup-button" onClick={handleSignUp}>Sign Up</button>
+            <button className="auth-button login-button" onClick={handleSignIn}>Login</button>
+            <button className="auth-button signup-button" onClick={handleSignUp}>Sign Up</button>
           </>
         )}
       </div>

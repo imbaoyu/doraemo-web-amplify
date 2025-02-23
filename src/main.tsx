@@ -7,14 +7,14 @@ import outputs from "../amplify_outputs.json";
 import LandingPage from "./LandingPage.tsx";
 import NotFoundPage from "./NotFoundPage.tsx";
 import withAutoLogout from "./AutoLogout.tsx";
-import ChatPage from "./ChatPage.tsx";
+import App from "./App.tsx";
 
 Amplify.configure(outputs);
 
 const AutoLogoutApp = withAutoLogout(() => (
   <Routes>
     <Route path="/" element={<LandingPage />} />
-    <Route path="/chat" element={<ChatPage />} />
+    <Route path="/chat" element={<App />} />
     <Route path="*" element={<NotFoundPage />} />
   </Routes>
 ));
