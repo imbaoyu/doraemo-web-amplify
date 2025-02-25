@@ -3,6 +3,8 @@ import { uploadData, list, remove } from 'aws-amplify/storage';
 import { FaTrash, FaSpinner } from 'react-icons/fa';
 import { generateClient } from 'aws-amplify/api';
 import type { Schema } from '../amplify/data/resource';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFilePdf } from '@fortawesome/free-solid-svg-icons';
 
 const client = generateClient<Schema>();
 
@@ -151,9 +153,14 @@ function FileWidget({ user }: FileWidgetProps) {
       <div className="pdf-list">
         {pdfs.map((pdf, index) => (
           <div key={index} className="pdf-item">
-            <div className="pdf-item-content">
-              <span className="filename">{pdf.name}</span>
+            <div className="file-item">
+              <div className="file-name">
+                <FontAwesomeIcon icon={faFilePdf} className="file-icon" />
+                {pdf.name}
+              </div>
               {pdf.status === 'uploaded' && <span className="status">processing<span className="animated-dots">...</span></span>}
+              {pdf.status === 'processed' && <span className="status success">ingested</span>}
+              {pdf.status === 'error' && <span className="status error">error</span>}
             </div>
             <button 
               className="delete-button"
