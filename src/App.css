@@ -250,6 +250,17 @@
   color: #666;
   font-style: italic;
   margin-left: 8px;
+  display: inline-block;
+}
+
+.pdf-item .status.success {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.pdf-item .status.error {
+  color: #dc3545;
+  font-weight: bold;
 }
 
 .pdf-item-content {
@@ -320,4 +331,33 @@
 .delete-button:hover,
 .signout-button:hover {
   background-color: #0056b3;
+}
+
+.pdf-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.refresh-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.refresh-button:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.refresh-button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
 }

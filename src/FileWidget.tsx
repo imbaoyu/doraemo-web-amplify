@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { uploadData, list, remove } from 'aws-amplify/storage';
-import { FaTrash, FaSpinner } from 'react-icons/fa';
+import { FaTrash, FaSpinner, FaSync } from 'react-icons/fa';
 import { generateClient } from 'aws-amplify/api';
 import type { Schema } from '../amplify/data/resource';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,9 +21,53 @@ interface FileWidgetProps {
   };
 }
 
+// Define a type for our document response
+interface DocumentResponse {
+  getUserDocument?: {
+    status?: string;
+  };
+}
+
 function FileWidget({ user }: FileWidgetProps) {
   const [pdfs, setPdfs] = useState<PdfFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [statusMap, setStatusMap] = useState<Record<string, string>>({});
+
+  // Function to get document status using a custom query
+  const getDocumentStatus = async (documentId: string): Promise<string | undefined> => {
+    try {
+      // Use a custom query to get just the status
+      const customQuery = /* GraphQL */ `
+        query GetUserDocumentStatus($id: ID!) {
+          getUserDocument(id: $id) {
+            status
+          }
+        }
+      `;
+      
+      // Use the lower-level API to execute the query
+      const response = await client.graphql({
+        query: customQuery,
+        variables: {
+          id: documentId
+        }
+      });
+      
+      console.log('Custom query response:', response);
+      
+      // Try to extract the status - cast to our expected type
+      const typedResponse = response as { data?: DocumentResponse };
+      if (typedResponse.data?.getUserDocument?.status) {
+        return typedResponse.data.getUserDocument.status;
+      }
+      
+      return undefined;
+    } catch (error) {
+      console.error('Error fetching document status:', error);
+      return undefined;
+    }
+  };
 
   // Load existing files and their status
   const loadExistingFiles = async () => {
@@ -36,28 +80,55 @@ function FileWidget({ user }: FileWidgetProps) {
       
       if (!result.items.length) {
         console.log('No files found in storage');
+        setPdfs([]);
         return;
       }
 
-      const files = await Promise.all(result.items.map(async item => {
-        console.log('Processing file:', item);
-        try {
-          const doc = await client.models.UserDocument.get({ id: item.path });
-          console.log('Document data:', doc);
-          return {
-            name: item.path.split('/').pop() || '',
-            key: item.path,
-            status: doc.data?.status
-          } as PdfFile;
-        } catch (error) {
-          console.error('Error fetching document data for:', item.path, error);
-          return null;
-        }
-      }));
+      // First, get all files from S3
+      const filesFromStorage = result.items.map(item => {
+        const key = item.path;
+        return {
+          name: item.path.split('/').pop() || '',
+          key: key,
+          // Use status from our statusMap if available
+          status: statusMap[key]
+        };
+      });
       
-      const validFiles = files.filter((file): file is PdfFile => file !== null);
-      console.log('Valid files:', validFiles);
-      setPdfs(validFiles);
+      // Set initial state with files from storage
+      setPdfs(filesFromStorage);
+      
+      // Then try to get status for each file individually
+      for (const file of filesFromStorage) {
+        try {
+          // Skip files that already have a processed status
+          if (file.status === 'processed' || file.status === 'error') {
+            continue;
+          }
+          
+          // Try to get the document status
+          const status = await getDocumentStatus(file.key);
+          
+          if (status && status !== statusMap[file.key]) {
+            console.log(`Status updated for ${file.name}: ${statusMap[file.key] || 'unknown'} -> ${status}`);
+            
+            // Update our status map
+            setStatusMap(prev => ({
+              ...prev,
+              [file.key]: status
+            }));
+            
+            // Update the file in our state
+            setPdfs(prev => 
+              prev.map(p => 
+                p.key === file.key ? { ...p, status } : p
+              )
+            );
+          }
+        } catch (error) {
+          console.error('Error fetching status for file:', file.name, error);
+        }
+      }
     } catch (error) {
       console.error('Error loading files:', error);
     }
@@ -66,32 +137,23 @@ function FileWidget({ user }: FileWidgetProps) {
   // Load existing files when user is available
   useEffect(() => {
     console.log('FileWidget mounted with user:', user);
-    loadExistingFiles();
+    if (user && user.userId) {
+      loadExistingFiles();
+    }
   }, [user.userId]); // Depend on user.userId specifically
 
+  // Set up polling for status updates
   useEffect(() => {
-    console.log('Setting up UserDocument subscription');
-    // Set up subscription for status updates
-    const sub = client.models.UserDocument.observeQuery()
-      .subscribe({
-        next: ({ items }) => {
-          console.log('Received UserDocument update:', items);
-          setPdfs(prevPdfs => {
-            return prevPdfs.map(pdf => {
-              const updatedDoc = items.find(item => item.id === pdf.key);
-              return updatedDoc ? { ...pdf, status: updatedDoc.status } : pdf;
-            });
-          });
-        },
-        error: (error) => console.error('Subscription error:', error)
-      });
-
-    // Cleanup subscription on component unmount
-    return () => {
-      console.log('Cleaning up UserDocument subscription');
-      sub.unsubscribe();
-    };
-  }, []);
+    if (!user.userId || pdfs.length === 0) return;
+    
+    // Poll for status updates every 5 seconds
+    const intervalId = setInterval(() => {
+      console.log('Polling for status updates...');
+      loadExistingFiles();
+    }, 5000);
+    
+    return () => clearInterval(intervalId);
+  }, [user.userId, pdfs.length]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,12 +173,23 @@ function FileWidget({ user }: FileWidgetProps) {
       
       await uploadData(uploadInput).result;
       
+      // Update status map with 'uploaded' status
+      setStatusMap(prev => ({
+        ...prev,
+        [path]: 'uploaded'
+      }));
+      
       // Add the new file to the list immediately with 'uploaded' status
       setPdfs(prev => [...prev, {
         name: file.name,
         key: path,
         status: 'uploaded'
       }]);
+      
+      // Trigger a refresh after a short delay to get the updated status
+      setTimeout(() => {
+        loadExistingFiles();
+      }, 2000);
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Failed to upload file. Please try again.');
@@ -128,6 +201,15 @@ function FileWidget({ user }: FileWidgetProps) {
   const handleDelete = async (key: string) => {
     try {
       await remove({ path: key });
+      
+      // Remove from status map
+      setStatusMap(prev => {
+        const newMap = { ...prev };
+        delete newMap[key];
+        return newMap;
+      });
+      
+      // Remove from pdfs state
       setPdfs(prev => prev.filter(pdf => pdf.key !== key));
     } catch (error) {
       console.error('Error deleting file:', error);
@@ -135,9 +217,29 @@ function FileWidget({ user }: FileWidgetProps) {
     }
   };
 
+  // Add a manual refresh function
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await loadExistingFiles();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="pdf-widget">
-      <h3>Documents</h3>
+      <div className="pdf-widget-header">
+        <h3>Documents</h3>
+        <button 
+          className="refresh-button" 
+          onClick={handleRefresh} 
+          disabled={isRefreshing}
+          aria-label="Refresh document list"
+        >
+          <FaSync className={isRefreshing ? 'spinner' : ''} />
+        </button>
+      </div>
       <div className="upload-section">
         <label className="file-upload-button">
           Choose File
@@ -151,26 +253,39 @@ function FileWidget({ user }: FileWidgetProps) {
         {isUploading && <FaSpinner className="spinner" />}
       </div>
       <div className="pdf-list">
-        {pdfs.map((pdf, index) => (
-          <div key={index} className="pdf-item">
-            <div className="file-item">
-              <div className="file-name">
-                <FontAwesomeIcon icon={faFilePdf} className="file-icon" />
-                {pdf.name}
+        {pdfs.length === 0 ? (
+          <p>No documents uploaded yet</p>
+        ) : (
+          pdfs.map((pdf, index) => (
+            <div key={index} className="pdf-item">
+              <div className="file-item">
+                <div className="file-name">
+                  <FontAwesomeIcon icon={faFilePdf} className="file-icon" />
+                  {pdf.name}
+                </div>
+                {pdf.status === 'uploaded' && (
+                  <span className="status">processing<span className="animated-dots">...</span></span>
+                )}
+                {pdf.status === 'processed' && (
+                  <span className="status success">ingested</span>
+                )}
+                {pdf.status === 'error' && (
+                  <span className="status error">error</span>
+                )}
+                {!pdf.status && (
+                  <span className="status">unknown</span>
+                )}
               </div>
-              {pdf.status === 'uploaded' && <span className="status">processing<span className="animated-dots">...</span></span>}
-              {pdf.status === 'processed' && <span className="status success">ingested</span>}
-              {pdf.status === 'error' && <span className="status error">error</span>}
+              <button 
+                className="delete-button"
+                onClick={() => handleDelete(pdf.key)}
+                aria-label="Delete file"
+              >
+                <FaTrash />
+              </button>
             </div>
-            <button 
-              className="delete-button"
-              onClick={() => handleDelete(pdf.key)}
-              aria-label="Delete file"
-            >
-              <FaTrash />
-            </button>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
