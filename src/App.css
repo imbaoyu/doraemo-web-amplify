@@ -189,126 +189,308 @@
 .pdf-widget {
   width: 300px;
   padding: 20px;
-  background-color: #f5f5f5;
-  border-left: 1px solid #ddd;
+  background-color: #f8f9fa;
+  border-left: 1px solid #e9ecef;
   height: calc(100vh - 60px);
   position: fixed;
   right: 0;
   top: 60px;
   overflow-y: auto;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.pdf-list {
-  margin-top: 16px;
+.pdf-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 15px;
 }
 
-.pdf-item {
-  padding: 8px;
-  margin: 4px 0;
-  background-color: #f8f9fa;
-  border-radius: 4px;
+.pdf-widget-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #212529;
+  margin: 0;
+}
+
+.refresh-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+}
+
+.refresh-button:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+  transform: rotate(30deg);
+}
+
+.refresh-button:disabled {
+  color: #adb5bd;
+  cursor: not-allowed;
+}
+
+.upload-container {
+  background-color: #e9f4ff;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.file-upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 105, 217, 0.2);
+  margin: 0 auto;
+  width: 80%;
+}
+
+.file-upload-btn:hover {
+  background-color: #0069d9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 105, 217, 0.3);
+}
+
+.upload-icon {
+  margin-right: 8px;
+  font-size: 1.1em;
+}
+
+.upload-spinner {
+  margin-left: 8px;
+}
+
+.upload-hint {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.document-list {
+  margin-top: 20px;
+}
+
+.document-list-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px 0;
+  color: #6c757d;
+}
+
+.empty-hint {
+  font-size: 0.85rem;
+  color: #adb5bd;
+  margin-top: 8px;
+}
+
+.document-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.document-item {
+  padding: 12px;
+  background-color: white;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  border: 1px solid #e9ecef;
 }
 
-.user-controls {
+.document-item:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.document-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  overflow: hidden;
+  flex: 1;
 }
 
-.user-info {
-  margin-right: 8px;
+.document-icon-container {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e74c3c;
+  flex-shrink: 0;
 }
 
-.delete-button {
+.document-icon {
+  font-size: 1.2rem;
+}
+
+.document-details {
+  overflow: hidden;
+  flex: 1;
+}
+
+.document-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #212529;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  position: relative;
+}
+
+/* Custom tooltip styles */
+.document-name-tooltip {
+  visibility: hidden;
+  position: absolute;
+  z-index: 1;
+  background-color: rgba(33, 37, 41, 0.95);
+  color: white;
+  text-align: center;
+  border-radius: 4px;
+  padding: 6px 10px;
+  left: 0;
+  bottom: calc(100% + 8px);
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(5px);
+  pointer-events: none;
+  font-size: 0.85rem;
+  white-space: normal;
+  word-break: break-all;
+  max-width: 250px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-weight: 400;
+}
+
+/* Create tooltip arrow */
+.document-name-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 15px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(33, 37, 41, 0.95) transparent transparent transparent;
+}
+
+/* Show the tooltip when hovering over the document name */
+.document-item:hover .document-name-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.document-status {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #6c757d;
+  text-align: left;
+}
+
+.document-status.processed {
+  color: #28a745;
+}
+
+.document-status.error {
+  color: #dc3545;
+}
+
+.document-status.uploaded {
+  color: #fd7e14;
+}
+
+.status-icon {
+  margin-right: 5px;
+  font-size: 0.8rem;
+}
+
+.status-icon.success {
+  color: #28a745;
+}
+
+.status-icon.error {
+  color: #dc3545;
+}
+
+.document-delete-btn {
   background: none;
   border: none;
-  color: #dc3545;
+  color: #adb5bd;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
 }
 
-.delete-button:hover {
-  background-color: #ffebee;
+.document-delete-btn:hover {
+  background-color: #f8d7da;
+  color: #dc3545;
 }
 
 .spinner {
   animation: spin 1s linear infinite;
-  margin-left: 10px;
 }
 
 @keyframes spin {
   100% { transform: rotate(360deg); }
 }
 
-.pdf-item .status {
-  color: #666;
-  font-style: italic;
-  margin-left: 8px;
-  display: inline-block;
-}
-
-.pdf-item .status.success {
-  color: #28a745;
-  font-weight: bold;
-}
-
-.pdf-item .status.error {
-  color: #dc3545;
-  font-weight: bold;
-}
-
-.pdf-item-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.pdf-item .filename {
-  word-break: break-all;
-}
-
-.pdf-item .status {
-  color: #666;
-  font-style: italic;
-  font-size: 0.9em;
-}
-
 .animated-dots {
   display: inline-block;
   animation: ellipsis 1.4s infinite;
+  margin-left: 2px;
 }
 
 @keyframes ellipsis {
   0% { opacity: 0; }
   50% { opacity: 1; }
   100% { opacity: 0; }
-}
-
-.file-upload-button {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-size: 0.9rem;
-  border: none;
-}
-
-.file-upload-button:hover {
-  background-color: #0056b3;
-}
-
-.upload-section {
-  margin-bottom: 16px;
 }
 
 /* Common button style */
@@ -331,33 +513,4 @@
 .delete-button:hover,
 .signout-button:hover {
   background-color: #0056b3;
-}
-
-.pdf-widget-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.refresh-button {
-  background: none;
-  border: none;
-  color: #007bff;
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
-
-.refresh-button:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-}
-
-.refresh-button:disabled {
-  color: #ccc;
-  cursor: not-allowed;
 }

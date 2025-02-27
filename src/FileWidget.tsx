@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { uploadData, list, remove } from 'aws-amplify/storage';
-import { FaTrash, FaSpinner, FaSync } from 'react-icons/fa';
+import { FaTrash, FaSpinner, FaSync, FaCloudUploadAlt, FaExclamationTriangle, FaCheck } from 'react-icons/fa';
 import { generateClient } from 'aws-amplify/api';
 import type { Schema } from '../amplify/data/resource';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -227,10 +227,38 @@ function FileWidget({ user }: FileWidgetProps) {
     }
   };
 
+  // Helper function to get status icon
+  const getStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'processed':
+        return <FaCheck className="status-icon success" />;
+      case 'error':
+        return <FaExclamationTriangle className="status-icon error" />;
+      case 'uploaded':
+        return <FaSpinner className="status-icon spinner" />;
+      default:
+        return null;
+    }
+  };
+
+  // Helper function to get status text
+  const getStatusText = (status?: string) => {
+    switch (status) {
+      case 'processed':
+        return 'Ingested';
+      case 'error':
+        return 'Error';
+      case 'uploaded':
+        return 'Processing';
+      default:
+        return 'Unknown';
+    }
+  };
+
   return (
     <div className="pdf-widget">
       <div className="pdf-widget-header">
-        <h3>Documents</h3>
+        <h3>Knowledge Base</h3>
         <button 
           className="refresh-button" 
           onClick={handleRefresh} 
@@ -240,51 +268,61 @@ function FileWidget({ user }: FileWidgetProps) {
           <FaSync className={isRefreshing ? 'spinner' : ''} />
         </button>
       </div>
-      <div className="upload-section">
-        <label className="file-upload-button">
-          Choose File
+      
+      <div className="upload-container">
+        <label className="file-upload-btn">
           <input
             type="file"
             onChange={handleFileUpload}
             accept=".pdf"
             style={{ display: 'none' }}
           />
+          <FaCloudUploadAlt className="upload-icon" />
+          <span>{isUploading ? 'Uploading...' : 'Upload PDF'}</span>
+          {isUploading && <FaSpinner className="spinner upload-spinner" />}
         </label>
-        {isUploading && <FaSpinner className="spinner" />}
+        <p className="upload-hint">Add documents to enhance your chat experience</p>
       </div>
-      <div className="pdf-list">
+      
+      <div className="document-list">
+        <h4 className="document-list-header">Your Documents</h4>
         {pdfs.length === 0 ? (
-          <p>No documents uploaded yet</p>
+          <div className="empty-state">
+            <p>No documents uploaded yet</p>
+            <p className="empty-hint">Upload PDFs to use them in chat</p>
+          </div>
         ) : (
-          pdfs.map((pdf, index) => (
-            <div key={index} className="pdf-item">
-              <div className="file-item">
-                <div className="file-name">
-                  <FontAwesomeIcon icon={faFilePdf} className="file-icon" />
-                  {pdf.name}
+          <div className="document-items">
+            {pdfs.map((pdf, index) => (
+              <div key={index} className="document-item">
+                <div className="document-info">
+                  <div className="document-icon-container">
+                    <FontAwesomeIcon icon={faFilePdf} className="document-icon" />
+                  </div>
+                  <div className="document-details">
+                    <div className="document-name" title={pdf.name}>
+                      {pdf.name}
+                      <div className="document-name-tooltip">
+                        {pdf.name}
+                      </div>
+                    </div>
+                    <div className={`document-status ${pdf.status || 'unknown'}`}>
+                      {getStatusIcon(pdf.status)}
+                      <span>{getStatusText(pdf.status)}</span>
+                      {pdf.status === 'uploaded' && <span className="animated-dots">...</span>}
+                    </div>
+                  </div>
                 </div>
-                {pdf.status === 'uploaded' && (
-                  <span className="status">processing<span className="animated-dots">...</span></span>
-                )}
-                {pdf.status === 'processed' && (
-                  <span className="status success">ingested</span>
-                )}
-                {pdf.status === 'error' && (
-                  <span className="status error">error</span>
-                )}
-                {!pdf.status && (
-                  <span className="status">unknown</span>
-                )}
+                <button 
+                  className="document-delete-btn"
+                  onClick={() => handleDelete(pdf.key)}
+                  aria-label="Delete file"
+                >
+                  <FaTrash />
+                </button>
               </div>
-              <button 
-                className="delete-button"
-                onClick={() => handleDelete(pdf.key)}
-                aria-label="Delete file"
-              >
-                <FaTrash />
-              </button>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </div>
