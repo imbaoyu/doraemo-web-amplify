@@ -64,11 +64,11 @@ chatFunction.addToRolePolicy(
 chatFunction.addEnvironment('AMPLIFY_API_ID', '#{AMPLIFY_API_ID}');
 chatFunction.addEnvironment('AMPLIFY_ENV', '#{AMPLIFY_ENV}');
 
-// Add Lambda invoke permissions for the chat function
+// Add Lambda invoke permissions for the chat function - using the fixed name
 chatFunction.addToRolePolicy(
   new PolicyStatement({
     actions: ['lambda:InvokeFunction'],
-    resources: ['arn:aws:lambda:us-east-1:847373240038:function:DoraemoCdkStack-ChatProcessor34D41143-wOCdGd6rR0CK']
+    resources: ['arn:aws:lambda:us-east-1:*:function:DoraemoCdkStack-ChatProcessor']
   })
 );
 
