@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { uploadData, list, remove } from 'aws-amplify/storage';
 import { FaTrash, FaSpinner, FaSync, FaCloudUploadAlt, FaExclamationTriangle, FaCheck } from 'react-icons/fa';
 import { generateClient } from 'aws-amplify/api';
@@ -28,11 +28,20 @@ interface DocumentResponse {
   };
 }
 
+// Status priority: higher values take precedence
+const STATUS_PRIORITY = {
+  'unknown': 0,
+  'uploaded': 1,
+  'error': 2,
+  'processed': 3
+};
+
 function FileWidget({ user }: FileWidgetProps) {
   const [pdfs, setPdfs] = useState<PdfFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [statusMap, setStatusMap] = useState<Record<string, string>>({});
+  // Use a ref for statusMap to avoid dependencies in useEffect
+  const statusMapRef = useRef<Record<string, string>>({});
 
   // Function to get document status using a custom query
   const getDocumentStatus = async (documentId: string): Promise<string | undefined> => {
@@ -54,8 +63,6 @@ function FileWidget({ user }: FileWidgetProps) {
         }
       });
       
-      console.log('Custom query response:', response);
-      
       // Try to extract the status - cast to our expected type
       const typedResponse = response as { data?: DocumentResponse };
       if (typedResponse.data?.getUserDocument?.status) {
@@ -69,66 +76,78 @@ function FileWidget({ user }: FileWidgetProps) {
     }
   };
 
+  // Helper function to get the best status based on priority
+  const getBestStatus = (currentStatus?: string, newStatus?: string): string => {
+    // If either status is undefined, return the other one or default to 'unknown'
+    if (!currentStatus) return newStatus || 'unknown';
+    if (!newStatus) return currentStatus;
+    
+    // Return the status with higher priority
+    return STATUS_PRIORITY[newStatus as keyof typeof STATUS_PRIORITY] >= 
+           STATUS_PRIORITY[currentStatus as keyof typeof STATUS_PRIORITY] 
+           ? newStatus : currentStatus;
+  };
+
   // Load existing files and their status
   const loadExistingFiles = async () => {
-    console.log('Loading files for user:', user);
+    if (!user?.userId) return;
+    
     try {
       const prefix = `user-documents/${user.userId}/`;
-      console.log('Listing files with prefix:', prefix);
       const result = await list({ path: prefix });
-      console.log('List result:', result);
       
       if (!result.items.length) {
-        console.log('No files found in storage');
         setPdfs([]);
         return;
       }
 
-      // First, get all files from S3
-      const filesFromStorage = result.items.map(item => {
+      // Create a map of current PDFs by key for quick lookup
+      const currentPdfsMap = pdfs.reduce((map, pdf) => {
+        map[pdf.key] = pdf;
+        return map;
+      }, {} as Record<string, PdfFile>);
+
+      // Process all files from storage
+      const updatedFiles: PdfFile[] = [];
+      
+      for (const item of result.items) {
         const key = item.path;
-        return {
-          name: item.path.split('/').pop() || '',
-          key: key,
-          // Use status from our statusMap if available
-          status: statusMap[key]
-        };
-      });
-      
-      // Set initial state with files from storage
-      setPdfs(filesFromStorage);
-      
-      // Then try to get status for each file individually
-      for (const file of filesFromStorage) {
-        try {
-          // Skip files that already have a processed status
-          if (file.status === 'processed' || file.status === 'error') {
-            continue;
+        const name = item.path.split('/').pop() || '';
+        const currentFile = currentPdfsMap[key];
+        
+        // Start with existing status or 'unknown'
+        let status = currentFile?.status || statusMapRef.current[key];
+        
+        // Only query for status if we don't have a final status yet
+        if (status !== 'processed' && status !== 'error') {
+          try {
+            const fetchedStatus = await getDocumentStatus(key);
+            if (fetchedStatus) {
+              // Use the status with highest priority
+              status = getBestStatus(status, fetchedStatus);
+              
+              // Update our status map for future reference
+              statusMapRef.current[key] = status;
+              
+              // Log status change only when there's an actual change
+              if (status !== currentFile?.status) {
+                console.log(`Status updated for ${name}: ${currentFile?.status || 'unknown'} -> ${status}`);
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching status for file:', name, error);
           }
-          
-          // Try to get the document status
-          const status = await getDocumentStatus(file.key);
-          
-          if (status && status !== statusMap[file.key]) {
-            console.log(`Status updated for ${file.name}: ${statusMap[file.key] || 'unknown'} -> ${status}`);
-            
-            // Update our status map
-            setStatusMap(prev => ({
-              ...prev,
-              [file.key]: status
-            }));
-            
-            // Update the file in our state
-            setPdfs(prev => 
-              prev.map(p => 
-                p.key === file.key ? { ...p, status } : p
-              )
-            );
-          }
-        } catch (error) {
-          console.error('Error fetching status for file:', file.name, error);
         }
+        
+        updatedFiles.push({
+          name,
+          key,
+          status
+        });
       }
+      
+      // Update state with all files at once to prevent multiple re-renders
+      setPdfs(updatedFiles);
     } catch (error) {
       console.error('Error loading files:', error);
     }
@@ -136,28 +155,26 @@ function FileWidget({ user }: FileWidgetProps) {
 
   // Load existing files when user is available
   useEffect(() => {
-    console.log('FileWidget mounted with user:', user);
     if (user && user.userId) {
       loadExistingFiles();
     }
-  }, [user.userId]); // Depend on user.userId specifically
+  }, [user?.userId]); // Depend on user.userId specifically
 
   // Set up polling for status updates
   useEffect(() => {
-    if (!user.userId || pdfs.length === 0) return;
+    if (!user?.userId || pdfs.length === 0) return;
     
     // Poll for status updates every 5 seconds
     const intervalId = setInterval(() => {
-      console.log('Polling for status updates...');
       loadExistingFiles();
     }, 5000);
     
     return () => clearInterval(intervalId);
-  }, [user.userId, pdfs.length]);
+  }, [user?.userId, pdfs.length]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !user?.userId) return;
     
     setIsUploading(true);
     try {
@@ -174,10 +191,7 @@ function FileWidget({ user }: FileWidgetProps) {
       await uploadData(uploadInput).result;
       
       // Update status map with 'uploaded' status
-      setStatusMap(prev => ({
-        ...prev,
-        [path]: 'uploaded'
-      }));
+      statusMapRef.current[path] = 'uploaded';
       
       // Add the new file to the list immediately with 'uploaded' status
       setPdfs(prev => [...prev, {
@@ -203,11 +217,7 @@ function FileWidget({ user }: FileWidgetProps) {
       await remove({ path: key });
       
       // Remove from status map
-      setStatusMap(prev => {
-        const newMap = { ...prev };
-        delete newMap[key];
-        return newMap;
-      });
+      delete statusMapRef.current[key];
       
       // Remove from pdfs state
       setPdfs(prev => prev.filter(pdf => pdf.key !== key));
