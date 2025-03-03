@@ -143,12 +143,12 @@ function App() {
           return <div>Redirecting...</div>;
         }
 
-        console.log('Authenticated user:', user);
+        // console.log('Authenticated user:', user);
         const userProps = {
           userId: user.userId,
           username: user.username
         };
-        console.log('User props for FileWidget:', userProps);
+        // console.log('User props for FileWidget:', userProps);
         
         return (
           <div className="page-container">

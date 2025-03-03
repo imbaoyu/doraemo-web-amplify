@@ -42,6 +42,43 @@ export const handler: Handler = async (event) => {
             console.log('Received response from chat processor');
             const responsePayload = Buffer.from(response.Payload).toString();
             const parsedResponse = JSON.parse(responsePayload);
+            console.log('Response payload:', responsePayload);
+            
+            // Check if the response is an object with a body property (common Lambda response format)
+            if (parsedResponse.body) {
+                // If body is a string that looks like JSON, parse it
+                if (typeof parsedResponse.body === 'string' && 
+                    (parsedResponse.body.startsWith('{') || parsedResponse.body.startsWith('['))) {
+                    try {
+                        const bodyObject = JSON.parse(parsedResponse.body);
+                        console.log('Parsed body object:', bodyObject);
+                        
+                        // If the body object has a text or response property, return that
+                        if (bodyObject.text) {
+                            return bodyObject.text;
+                        } else if (bodyObject.response) {
+                            return bodyObject.response;
+                        } else {
+                            // Otherwise return the whole body object
+                            return bodyObject;
+                        }
+                    } catch (e) {
+                        // If parsing fails, return the body string
+                        console.log('Failed to parse body as JSON, returning as is');
+                        return parsedResponse.body;
+                    }
+                } else {
+                    // If body is not JSON-like, return it directly
+                    return parsedResponse.body;
+                }
+            } else if (parsedResponse.text) {
+                // If the response has a text property, return that
+                return parsedResponse.text;
+            } else if (parsedResponse.response) {
+                // If the response has a response property, return that
+                return parsedResponse.response;
+            }
+            
             console.log('Response size:', responsePayload.length, 'bytes');
             return parsedResponse;
         }
